@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import traceback
 from wsuks.helpers.logger import initLogger
 from wsuks.helpers.argparser import initParser, printBanner
+from wsuks.helpers.sysvolparser import SysvolParser
 
 
 class Wsuks:
@@ -21,6 +23,17 @@ def main():
     printBanner()
     args = initParser()
     initLogger(debug=args.debug)
+    logger = logging.getLogger()
+    logger.info(args)
+
+    # Get the WSUS server IP and Port from the sysvol share
+    sysvolparser = SysvolParser()
+    smbConnection = sysvolparser.getSMBConnection(args, args.domain, args.username, args.password, args.target_ip, args.lmhash, args.nthash)
+    wsusIp, wsusPort = sysvolparser.findWsusServer(smbConnection)
+    sysvolparser.close(smbConnection)
+
+    # Start Arp Spoofing
+
 
     wsuks = Wsuks()
     wsuks.run()
