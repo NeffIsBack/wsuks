@@ -34,17 +34,18 @@ def initParser():
     parser.add_argument('-v', '--version', action='version', version='Current Version: %(prog)s 2.0')
     parser.add_argument('-d', '--debug', action='store_true', help='Enable debug output')
 
-    parser.add_argument('-t', '--target-ip', metavar='', help='IP Address of the victim Client. (REQUIRED)', required=True)
+    parser.add_argument('-t', '--target-ip', metavar='', dest="targetIp", help='IP Address of the victim Client. (REQUIRED)', required=True)
     parser.add_argument('-e', '--executable', metavar='', help='The executable to returned to the victim. It has to be signed by Microsoft (DEFAULT: PsExec64.exe)')
     parser.add_argument('-c', '--command', metavar='', help='The command to execute on the victim. (DEFAULT: %(default)s)', default='whoami')
 
     simple = parser.add_argument_group('AUTOMATIC MODE', 'Discover the WSUS Server automatically by searching for GPOs in SYSVOL. (Default)')
     simple.add_argument('-u', '--username', metavar='', help='Username to authenticate with. (Required in automatic Mode)')
     simple.add_argument('-p', '--password', metavar='', help='Password to authenticate with. (Required in automatic Mode)')
-    simple.add_argument('-dc-ip', metavar='', help='IP Address of the domain controller. (Required in automatic Mode)')
+    simple.add_argument('-dc-ip', metavar='', dest="dcIp", help='IP Address of the domain controller. (Required in automatic Mode)')
+    simple.add_argument('--domain', metavar='', help='Domain to authenticate with. (Optional)')
 
     advanced = parser.add_argument_group('MANUAL MODE', 'If you know the WSUS Server, you can use this mode to skip the automatic discovery.')
-    advanced.add_argument('--WSUS-Server', metavar='', help='IP Address of the WSUS Server.')
-    advanced.add_argument('--WSUS-Port', metavar='', type=int, default=8530, help='Port of the WSUS Server. (DEFAULT: %(default)s)')
+    advanced.add_argument('--WSUS-Server', metavar='', dest="wsusIp", help='IP Address of the WSUS Server.')
+    advanced.add_argument('--WSUS-Port', metavar='', dest="wsusPort", type=int, default=8530, help='Port of the WSUS Server. (DEFAULT: %(default)s)')
 
     return parser.parse_args()

@@ -15,6 +15,7 @@ wsuks = "wsuks.wsuks:main"
 [tool.poetry.dependencies]
 python = "^3.11"
 impacket = "^0.10.0"
+scapy = "^2.5.0"
 
 
 [build-system]

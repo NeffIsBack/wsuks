@@ -444,6 +444,22 @@ docs = ["sphinx (!=5.2.0,!=5.2.0.post0)", "sphinx-rtd-theme"]
 test = ["flaky", "pretend", "pytest (>=3.0.1)"]
 
 [[package]]
+name = "scapy"
+version = "2.5.0"
+description = "Scapy: interactive packet manipulation tool"
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4"
+files = [
+    {file = "scapy-2.5.0.tar.gz", hash = "sha256:5b260c2b754fd8d409ba83ee7aee294ecdbb2c235f9f78fe90bc11cb6e5debc2"},
+]
+
+[package.extras]
+basic = ["ipython"]
+complete = ["cryptography (>=2.0)", "ipython", "matplotlib", "pyx"]
+docs = ["sphinx (>=3.0.0)", "sphinx_rtd_theme (>=0.4.3)", "tox (>=3.0.0)"]
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -476,4 +492,4 @@ watchdog = ["watchdog"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "f6a5d3d2e4f2e0f0b6f6be8365d58a405061d4b3329f6487a5efb519984b64db"
+content-hash = "8faac8f491ddb8fd42a297540b20aa95fce38a2872880f911c9944edacbd492d"
