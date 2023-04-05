@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import time
 from scapy.all import get_if_addr, conf
 from wsuks.helpers.arpspoofer import ArpSpoofer
 from wsuks.helpers.logger import initLogger
@@ -33,7 +34,14 @@ class Wsuks:
 
         # Start Arp Spoofing
         arpspoofer = ArpSpoofer()
-        arpspoofer.spoof(self.targetIp, self.hostIp)
+        arpspoofer.start(self.targetIp, "192.168.0.1")
+        
+        # Restlicher Code
+        try:
+            time.sleep(1000)
+        except KeyboardInterrupt:
+            print("")
+            arpspoofer.stop()
 
 
 def main():
