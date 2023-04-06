@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import sys
 import time
 import traceback
 import scapy.all as scapy
@@ -29,6 +30,7 @@ class ArpSpoofer:
         targetMac = scapy.getmacbyip(targetIp)
         if targetMac == None:
             self.logger.error("ARP request for IP address {} failed! Exiting...".format(targetIp))
+            sys.exit(1)
         else:
             while self.isRunning:
                 self.logger.debug("Sending ARP response to {} with spoofed IP address {}".format(targetIp, spoofIp))
