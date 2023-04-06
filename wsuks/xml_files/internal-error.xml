@@ -1,1 +1,11 @@
-<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><s:Fault><faultcode xmlns:a="http://schemas.microsoft.com/net/2005/12/windowscommunicationfoundation/dispatcher">a:InternalServiceFault</faultcode><faultstring xml:lang="en-US">The server was unable to process the request due to an internal error.</faultstring></s:Fault></s:Body></s:Envelope>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+    <s:Body>
+        <s:Fault>
+            <faultcode
+                xmlns:a="http://schemas.microsoft.com/net/2005/12/windowscommunicationfoundation/dispatcher">
+                a:InternalServiceFault</faultcode>
+            <faultstring xml:lang="en-US">The server was unable to process the request due to an
+                internal error.</faultstring>
+        </s:Fault>
+    </s:Body>
+</s:Envelope>
