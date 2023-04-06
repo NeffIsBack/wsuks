@@ -3,7 +3,7 @@
 
 import logging
 import time
-from scapy.all import get_if_addr, conf
+from scapy.all import get_if_addr, conf, sniff
 from wsuks.helpers.arpspoofer import ArpSpoofer
 from wsuks.helpers.logger import initLogger
 from wsuks.helpers.argparser import initParser, printBanner
@@ -37,12 +37,15 @@ class Wsuks:
         arpspoofer.start(self.targetIp, "192.168.0.1")
         
         # Restlicher Code
+        #sniff(filter="tcp and port 8530", prn=self.handlePacket, store=0)
         try:
-            time.sleep(1000)
+            time.sleep(10000)
         except KeyboardInterrupt:
             print("")
             arpspoofer.stop()
 
+    def handlePacket(self, packet):
+        packet.show()
 
 def main():
     # Setup
