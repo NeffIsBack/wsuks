@@ -30,7 +30,7 @@ class Wsuks:
         if not self.wsusIp:
             self.wsusIp, self.wsusPort = sysvolparser.findWsusServer(self.domain, self.username, self.password, self.dcIp)
         else:
-            self.logger.info("WSUS Server specified manually: {}:{}".format(self.wsusIp, self.wsusPort))
+            self.logger.info(f"WSUS Server specified manually: {self.wsusIp}:{self.wsusPort}")
 
         # Start Arp Spoofing
         arpspoofer = ArpSpoofer()

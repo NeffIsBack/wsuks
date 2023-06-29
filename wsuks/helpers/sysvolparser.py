@@ -35,7 +35,7 @@ class SysvolParser():
             else:
                 self.logger.debug("USER Session Granted")
         except Exception as e:
-            self.logger.error("Error: {}".format(e))
+            self.logger.error(f"Error: {e}")
             if self.logger.level == logging.DEBUG:
                 traceback.print_exc()
 
@@ -62,7 +62,7 @@ class SysvolParser():
             self._createSMBConnection(domain, username, password, dcIp)
             self.wsusIp, self.wsusPort = self._extractWsusServerSYSVOL()
         except Exception as e:
-            self.logger.error("Error: {}".format(e))
+            self.logger.error(f"Error: {e}")
             self.logger.error("Error while looking for WSUS Server in SYSVOL Share.")
             if self.logger.level == logging.DEBUG:
                 traceback.print_exc()

