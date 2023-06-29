@@ -58,6 +58,10 @@ class SysvolParser():
         :param smbClient: SMB connection to Domain Controller
         :return: WSUS server IP and Port
         """
+        if not username or not password or not dcIp:
+            self.logger.error("Error: Domain Controller IP, Username and Password are required to search for WSUS Server in SYSVOL Share. Exiting...")
+            sys.exit(1)
+
         try:
             self._createSMBConnection(domain, username, password, dcIp)
             self.wsusIp, self.wsusPort = self._extractWsusServerSYSVOL()

