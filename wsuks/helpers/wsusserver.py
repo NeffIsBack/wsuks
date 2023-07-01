@@ -104,8 +104,7 @@ class WSUSUpdateHandler:
             sys.exit(1)
 
     def __str__(self):
-        return 'The update metadata - uuids: {uuids},revision_ids: {revision_ids}, deployment_ids: {deployment_ids}, executable: {executable}, sha1: {sha1}, sha256: {sha256}'.format(
-            uuids=self.uuids, revision_ids=self.revision_ids, deployment_ids=self.deployment_ids, executable=self.executable_name, sha1=self.sha1, sha256=self.sha256)
+        return f'The update metadata - uuids: {self.uuids},revision_ids: {self.revision_ids}, deployment_ids: {self.deployment_ids}, executable: {self.executable}, sha1: {self.sha1}, sha256: {self.sha256}'
 
 
 class WSUSBaseServer(BaseHTTPRequestHandler):
@@ -186,9 +185,9 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
 
             post_data_report = BeautifulSoup(post_data, "xml")
             self.logger.info('Client Report: {targetID}, {computerBrand}, {computerModel}, {extendedData}.'.format(targetID=post_data_report.TargetID.text,
-                                                                                                computerBrand=post_data_report.ComputerBrand.text,
-                                                                                                computerModel=post_data_report.ComputerModel.text,
-                                                                                                extendedData=post_data_report.ExtendedData.ReplacementStrings.string)) 
+                                                                                                                   computerBrand=post_data_report.ComputerBrand.text,
+                                                                                                                   computerModel=post_data_report.ComputerModel.text,
+                                                                                                                   extendedData=post_data_report.ExtendedData.ReplacementStrings.string))
 
         elif soap_action == '"http://www.microsoft.com/SoftwareDistribution/Server/SimpleAuthWebService/GetAuthorizationCookie"':
             # https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wusp/44767c55-1e41-4589-aa01-b306e0134744
