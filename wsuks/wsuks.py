@@ -79,6 +79,10 @@ def main():
     scapyLogger = logging.getLogger('scapy')
     scapyLogger.handlers.clear()
 
+    if os.geteuid() != 0:
+        logger.error("This script must be run as root!")
+        exit(1)
+
     wsuks = Wsuks(args)
     wsuks.run()
 
