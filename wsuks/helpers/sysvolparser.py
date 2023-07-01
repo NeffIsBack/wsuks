@@ -52,6 +52,13 @@ class SysvolParser():
         self.logger.debug("SMB Connection Closed")
 
     def findWsusServer(self, domain, username, password, dcIp):
+        try:
+            raise NotImplementedError("Autodiscovery from WSUS Server not implemented yet")
+        except Exception as e:
+            self.logger.error(f"Error: {e}")
+            if self.logger.level == logging.DEBUG:
+                traceback.print_exc()
+            sys.exit(1)
         """
         Get the WSUS server from the sysvol share
 
