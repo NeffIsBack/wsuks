@@ -29,7 +29,7 @@ class ArpSpoofer:
         """
         targetMac = scapy.getmacbyip(targetIp)
         if targetMac == None:
-            self.logger.error(f"ARP request for IP address {targetIp} failed! Exiting...")
+            self.logger.error(f"ARP request for IP address {targetIp} failed! Target is not reachable!")
             sys.exit(1)
         else:
             while self.isRunning:
@@ -53,7 +53,7 @@ class ArpSpoofer:
             packet = scapy.ARP(op=2, pdst=destination_ip, hwdst=destination_mac, psrc=source_ip, hwsrc=source_mac)
             scapy.send(packet, verbose=False)
         except Exception as e:
-            self.logger.error(f"Error while restoring ARP tables: {e.message}")
+            self.logger.error(f"Error while restoring ARP tables: {e}")
             if self.logger.level == logging.DEBUG:
                 traceback.print_exc()
 
