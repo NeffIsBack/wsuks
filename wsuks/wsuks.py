@@ -4,6 +4,7 @@
 from http.server import HTTPServer
 import logging
 import os
+from pprint import pformat
 from scapy.all import get_if_addr, sniff
 from wsuks.helpers.arpspoofer import ArpSpoofer
 from wsuks.helpers.logger import initLogger
@@ -42,7 +43,7 @@ class Wsuks:
 
         # Start Arp Spoofing
         arpspoofer = ArpSpoofer()
-        arpspoofer.start(self.targetIp, "192.168.0.1")
+        arpspoofer.start(self.targetIp, self.wsusIp)
 
         # Prepare WSUS Update Handler
         # sniff(filter="tcp and port 8530", prn=self.handlePacket, store=0)
@@ -73,7 +74,7 @@ def main():
 
     initLogger(debug=args.debug)
     logger = logging.getLogger('wsuks')
-    logger.debug(args)
+    logger.debug('Passed args:\n' + pformat(vars(args)))
     
     # Prevent scapy from logging to console
     scapyLogger = logging.getLogger('scapy')

