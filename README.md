@@ -2,15 +2,22 @@
 # wsuks
 _Weaponizing the WSUS Attack_
 
-Becoming local Admin on a domain joined Windows Machine is usually the first step to obtain domain admin privileges in a pentest. To utilize the WSUS attack automatically this Tool spoofs the ip address of the WSUS-Server inside the network via arp and serves its own Windows Update as soon as the client requests them.
-Per Default a Windows Client requests Updates every 24h. On request wsuks provides its own "Updates" executing Powershell commands on the target to create an local Admin and add it to the local Administrators group.
+Gaining local administrative access on a Windows machine that is part of a domain is typically the initial step towards acquiring domain admin privileges during a penetration test. In order to exploit the WSUS attack automatically, this tool spoofs the IP address of the WSUS server within the network using ARP, and when the client requests Windows updates, it provides its own malicious updates instead.
+By default, a Windows client requests updates every 24 hours. 
 
-The served executable (Default: PsExec64.exe) as well as the executed command can be changed as needed.
+Both the executable file served (Default: PsExec64.exe) and the executed command can be changed as needed.
+
+Prerequisits:
+- The target Client must be on the local network
+- The Windows Server Update Service (WSUS) must be configured using HTTP
+
+Result:
+- After successful execution a user with the format user[0-9]{5} (e.g. user12345) and a random password will be created and added to the local admin group
 
 ## Installation
 Using pipx:
 ```
-sudo apt install python3-pipx git
+sudo apt install python3-pipx
 sudo pipx ensurepath
 sudo pipx install wsuks
 ```
