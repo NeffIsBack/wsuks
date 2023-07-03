@@ -36,9 +36,8 @@ sudo poetry install
 
 With pipx:
 ```
-sudo -i
-wsuks
-wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20
+sudo wsuks
+suso wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20
 ```
 
 With poetry:
