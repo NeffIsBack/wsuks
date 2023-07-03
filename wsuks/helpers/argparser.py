@@ -27,9 +27,8 @@ def printBanner():
 
 def initParser():
     example_text = """Examples:
+    wsuks -t 192.168.0.10 --WSUS-Server 192.168.0.2
     wsuks -t 192.168.0.10 -u User -p Password123 -dc-ip 192.168.0.1
-    wsuks -t 192.168.0.10 -u User -p Password123 -dc-ip 192.168.0.1 -c "dir"
-    wsuks -t 192-168-0-10 --WSUS-Server 192.168.0.2 -c "dir"
     """
     parser = argparse.ArgumentParser(prog='wsuks', epilog=example_text, formatter_class=RawTextHelpFormatter)
 
