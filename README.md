@@ -18,8 +18,9 @@ Result:
 Using pipx:
 ```
 sudo apt install python3-pipx
-sudo pipx ensurepath
-sudo pipx install wsuks
+pipx ensurepath
+pipx install wsuks
+sudo ln -s ~/.local/pipx/venvs/wsuks/bin/wsuks /usr/bin/wsuks
 ```
 
 Using poetry:
