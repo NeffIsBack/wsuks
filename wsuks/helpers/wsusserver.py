@@ -57,40 +57,46 @@ class WSUSUpdateHandler:
         path = os.path.abspath(os.path.dirname(wsuks.__file__))
 
         try:
-            with open('{}/xml_files/get-config.xml'.format(path), 'r') as file:
+            with open(f'{path}/xml_files/get-config.xml', 'r') as file:
                 self.get_config_xml = file.read().format(lastChange=self.get_last_change())
                 file.close()
 
-            with open('{}/xml_files/get-cookie.xml'.format(path), 'r') as file:
+            with open(f'{path}/xml_files/get-cookie.xml', 'r') as file:
                 self.get_cookie_xml = file.read().format(expire=self.get_expire(), cookie=self.get_cookie())
                 file.close()
 
-            with open('{}/xml_files/register-computer.xml'.format(path), 'r') as file:
+            with open(f'{path}/xml_files/register-computer.xml', 'r') as file:
                 self.register_computer_xml = file.read()
                 file.close()
 
-            with open('{}/xml_files/sync-updates.xml'.format(path), 'r') as file:
+            with open(f'{path}/xml_files/sync-updates.xml', 'r') as file:
                 # TODO KB1234567 -> dynamic
-                self.sync_updates_xml = file.read().format(revision_id1=self.revision_ids[0], revision_id2=self.revision_ids[1],
-                                                           deployment_id1=self.deployment_ids[0], deployment_id2=self.deployment_ids[1],
-                                                           uuid1=self.uuids[0], uuid2=self.uuids[1], expire=self.get_expire(), cookie=self.get_cookie())
+                self.sync_updates_xml = file.read().format(revision_id1=self.revision_ids[0],
+                                                           revision_id2=self.revision_ids[1],
+                                                           deployment_id1=self.deployment_ids[0],
+                                                           deployment_id2=self.deployment_ids[1],
+                                                           uuid1=self.uuids[0],
+                                                           uuid2=self.uuids[1],
+                                                           expire=self.get_expire(),
+                                                           cookie=self.get_cookie())
                 file.close()
 
-            with open('{}/xml_files/get-extended-update-info.xml'.format(path), 'r') as file:
+            with open(f'{path}/xml_files/get-extended-update-info.xml', 'r') as file:
                 self.get_extended_update_info_xml = file.read().format(revision_id1=self.revision_ids[0],
                                                                        revision_id2=self.revision_ids[1],
-                                                                       sha1=self.sha1, sha256=self.sha256,
+                                                                       sha1=self.sha1,
+                                                                       sha256=self.sha256,
                                                                        filename=self.executable_name,
                                                                        file_size=len(self.executable),
                                                                        command=html.escape(html.escape(self.command)),
                                                                        url=f'http://{self.client_address}/{uuid.uuid4()}/{self.executable_name}')
                 file.close()
 
-            with open('{}/xml_files/report-event-batch.xml'.format(path), 'r') as file:
+            with open(f'{path}/xml_files/report-event-batch.xml', 'r') as file:
                 self.report_event_batch_xml = file.read()
                 file.close()
 
-            with open('{}/xml_files/get-authorization-cookie.xml'.format(path), 'r') as file:
+            with open(f'{path}/xml_files/get-authorization-cookie.xml', 'r') as file:
                 self.get_authorization_cookie_xml = file.read().format(cookie=self.get_cookie())
                 file.close()
 
@@ -145,18 +151,18 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_HEAD(self):
-        self.logger.debug('HEAD request,\nPath: {path}\nHeaders:\n{headers}\n'.format(path=self.path, headers=self.headers))
+        self.logger.debug(f'HEAD request,\nPath: {self.path}\nHeaders:\n{self.headers}\n')
 
         if self.path.find(".exe"):
-            self.logger.info("Requested: {path}".format(path=self.path))
+            self.logger.info(f"Requested: {self.path}")
 
             self._set_response(True)
 
     def do_GET(self):
-        self.logger.debug('GET request,\nPath: {path}\nHeaders:\n{headers}\n'.format(path=self.path, headers=self.headers))
+        self.logger.debug(f'GET request,\nPath: {self.path}\nHeaders:\n{self.headers}\n')
 
         if self.path.find(".exe"):
-            self.logger.info("Requested: {path}".format(path=self.path))
+            self.logger.info(f"Requested: {self.path}")
 
             self._set_response(True)
             self.wfile.write(self.wsusUpdateHandler.executable)
@@ -169,7 +175,7 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
         post_data_xml = BeautifulSoup(post_data, "xml")
         data = None
 
-        self.logger.debug("POST Request,\nPath: {path}\nHeaders:\n{headers}\n\nBody:\n{body}\n".format(path=self.path, headers=self.headers, body=post_data_xml.encode_contents()))
+        self.logger.debug(f"POST Request,\nPath: {self.path}\nHeaders:\n{self.headers}\n\nBody:\n{post_data_xml.encode_contents()}\n")
 
         soap_action = self.headers['SOAPAction']
 
@@ -198,10 +204,7 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
             data = BeautifulSoup(self.wsusUpdateHandler.report_event_batch_xml, "xml")
 
             post_data_report = BeautifulSoup(post_data, "xml")
-            self.logger.info('Client Report: {targetID}, {computerBrand}, {computerModel}, {extendedData}.'.format(targetID=post_data_report.TargetID.text,
-                                                                                                                   computerBrand=post_data_report.ComputerBrand.text,
-                                                                                                                   computerModel=post_data_report.ComputerModel.text,
-                                                                                                                   extendedData=post_data_report.ExtendedData.ReplacementStrings.string))
+            self.logger.info(f'Client Report: {post_data_report.TargetID.text}, {post_data_report.ComputerBrand.text}, {post_data_report.ComputerModel.text}, {post_data_report.ExtendedData.ReplacementStrings.string}.')
 
         elif soap_action == '"http://www.microsoft.com/SoftwareDistribution/Server/SimpleAuthWebService/GetAuthorizationCookie"':
             # https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wusp/44767c55-1e41-4589-aa01-b306e0134744
@@ -209,15 +212,15 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
 
         else:
             self.logger.warning("SOAP Action not handled")
-            self.logger.info('SOAP Action: {}'.format(soap_action))
+            self.logger.info(f'SOAP Action: {soap_action}')
             return
 
         self._set_response()
         self.wfile.write(data.encode_contents())
 
-        self.logger.info('SOAP Action: {}'.format(soap_action))
+        self.logger.info(f'SOAP Action: {soap_action}')
 
         if data is not None:
-            self.logger.debug("POST Response,\nPath: {path}\nHeaders:\n{headers}\n\nBody:\n{body}\n".format(path=self.path, headers=self.headers, body=data.encode_contents))
+            self.logger.debug(f"POST Response,\nPath: {self.path}\nHeaders:\n{self.headers}\n\nBody:\n{data.encode_contents}\n")
         else:
             self.logger.warning("POST Response without data.")
