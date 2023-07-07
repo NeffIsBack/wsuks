@@ -67,13 +67,20 @@ def initLogger(ts=False, debug=False):
         handler.setFormatter(WsuksFormatter())
     
     logger = logging.getLogger("wsuks")
+    logger.propagate = False
+    root_logger = logging.getLogger()
+
     logger.addHandler(handler)
-    
+    root_logger.addHandler(handler)
+
     if debug:
         logger.setLevel(logging.DEBUG)
+        root_logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
+        root_logger.setLevel(logging.INFO)
 
     addSuccessLogLevel(logger)
+    addSuccessLogLevel(root_logger)
     
     return logger
