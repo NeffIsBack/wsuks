@@ -5,6 +5,8 @@ from http.server import HTTPServer
 import logging
 import os
 from pprint import pformat
+import random
+from string import digits, ascii_letters
 from scapy.all import get_if_addr, sniff
 from wsuks.helpers.arpspoofer import ArpSpoofer
 from wsuks.helpers.logger import initLogger
@@ -17,13 +19,15 @@ class Wsuks:
     def __init__(self, args):
         self.logger = logging.getLogger()
         self.hostIp = get_if_addr(args.interface)
+        self.username = "user" + "".join(random.choice(digits) for i in range(5))
+        self.password = "".join(random.sample(ascii_letters, 16))
 
         # Set args
         self.targetIp = args.targetIp  # Never None (required)
         self.executable_file = args.executable.read()
         self.executable_name = os.path.basename(args.executable.name)
         args.executable.close()
-        self.command = args.command
+        self.command = args.command.replace("WSUKS_USER", self.username).replace("WSUKS_PASSWORD", self.password)
 
         self.wsusIp = args.wsusIp
         self.wsusPort = args.wsusPort  # Default 8530
