@@ -77,8 +77,7 @@ def main():
     printBanner()
     args = initParser()
 
-    initLogger(debug=args.debug)
-    logger = logging.getLogger('wsuks')
+    logger = initLogger(debug=args.debug)
     logger.debug('Passed args:\n' + pformat(vars(args)))
     
     # Prevent scapy from logging to console

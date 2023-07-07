@@ -15,7 +15,7 @@ class ArpSpoofer:
     """
 
     def __init__(self):
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger("wsuks")
         self.isRunning = False
         self.targetIp = None
         self.spoofIp = None

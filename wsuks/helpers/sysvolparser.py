@@ -9,7 +9,7 @@ from impacket.smbconnection import SMBConnection
 
 class SysvolParser():
     def __init__(self):
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger("wsuks")
         self.smbClient = None
         self.share = "SYSVOL"
         self.wsusIp = None
