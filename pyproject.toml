@@ -18,6 +18,7 @@ impacket = "^0.10.0"
 scapy = "^2.5.0"
 termcolor = "^2.2.0"
 bs4 = "^0.0.1"
+lxml = "^4.9.3"
 
 
 [build-system]
