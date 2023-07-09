@@ -30,7 +30,7 @@ class ArpSpoofer:
         targetMac = scapy.getmacbyip(targetIp)
         self.logger.debug(f"Target IP address: {targetIp}")
         self.logger.debug(f"Target MAC address: {targetMac}")
-        if targetMac == None:
+        if targetMac is None:
             self.logger.error(f"ARP request for IP address {targetIp} failed! Target is not reachable!")
             sys.exit(1)
         else:
