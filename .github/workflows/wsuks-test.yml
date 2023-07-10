@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: wsuks test
+name: wsuks tests
 
 on:
   push:
@@ -15,29 +15,34 @@ permissions:
 jobs:
   build:
 
-    name: wsuks test on ${{ matrix.os }}
+    name: wsuks test for Python ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 4
+      max-parallel: 5
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install poetry
+    - name: Install poetry --python ${{ matrix.python-version }}
       run: |
-        pipx install poetry
+        pipx install poetry --python python${{ matrix.python-version }}
+        poetry lock --no-update
         poetry --version
-    - name: Install librairies with dev group
+        poetry env info
+    - name: Install dependencies and flake8
       run: |
-        poetry install --with dev
-    - name: Lint with flake8
+        poetry install
+        poetry add flake8 --group dev
+    - name: Check syntax errors and undefined names
       run: |
         # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+    - name: Lint with flake8
+      run: |
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=240 --statistics
+        poetry run flake8 . --count --exit-zero --extend-ignore=W605,E501 --max-complexity=10 --statistics
