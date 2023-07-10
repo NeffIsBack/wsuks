@@ -41,15 +41,15 @@ class WsuksFormatterTimeStamp(WsuksFormatter):
 
     def formatTime(self, record):
         return WsuksFormatter.formatTime(self, record, datefmt="%Y-%m-%d %H:%M:%S")
-    
+
+
 def addSuccessLogLevel(logger):
     logging.SUCCESS = 25  # between WARNING and INFO
     logging.addLevelName(logging.SUCCESS, 'SUCCESS')
-    
+
     def success(self, msg, *args, **kwargs):
         logger._log(25, msg, args, **kwargs)
     setattr(logging.getLoggerClass(), 'success', success)
-    
 
 
 def initLogger(ts=False, debug=False):
@@ -65,7 +65,7 @@ def initLogger(ts=False, debug=False):
         handler.setFormatter(WsuksFormatterTimeStamp())
     else:
         handler.setFormatter(WsuksFormatter())
-    
+
     logger = logging.getLogger("wsuks")
     logger.propagate = False
     root_logger = logging.getLogger()
@@ -82,5 +82,5 @@ def initLogger(ts=False, debug=False):
 
     addSuccessLogLevel(logger)
     addSuccessLogLevel(root_logger)
-    
+
     return logger

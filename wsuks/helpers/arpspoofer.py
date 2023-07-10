@@ -23,7 +23,7 @@ class ArpSpoofer:
     def _spoof(self, targetIp, spoofIp):
         """
         Spoof the target's ARP table by sending a fake ARP response with our MAC address as the sender.
-        
+
         :param targetIp: The victim's IP address
         :param spoofIp: The IP address to spoof
         """
@@ -74,7 +74,7 @@ class ArpSpoofer:
         self.logger.info(f"Starting ARP spoofing for target {targetIp} and spoofing IP address {spoofIp}")
         t1 = Thread(target=self._spoof, args=(targetIp, spoofIp))
         t1.start()
-        
+
     def stop(self):
         """
         Stop the ARP spoofing process.
@@ -85,5 +85,3 @@ class ArpSpoofer:
             self._restore(self.targetIp, self.spoofIp)
         else:
             self.logger.error("ARP spoofing is not running")
-
-

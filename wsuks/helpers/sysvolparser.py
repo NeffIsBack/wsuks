@@ -20,8 +20,8 @@ class SysvolParser():
         Create a SMB connection to the target
         """
         # SMB Login would be ready for kerberos or NTLM Hashes Authentication if it is needed
-        #TODO: Fix remoteName in SMBConnection if this is a bug
-        #TODO: Add Kerberos Authentication
+        # TODO: Fix remoteName in SMBConnection if this is a bug
+        # TODO: Add Kerberos Authentication
         try:
             self.smbClient = SMBConnection(remoteName=dcIp, remoteHost=dcIp, sess_port=int(445))
 
