@@ -150,7 +150,7 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_HEAD(self):
-        self.logger.debug(f'HEAD request,\nPath: {self.path}\nHeaders:\n{self.headers}\n')
+        self.logger.success(f'HEAD request,\nPath: {self.path}\nHeaders:\n{self.headers}\n')
 
         if self.path.find(".exe"):
             self.logger.info(f"Requested: {self.path}")
@@ -158,7 +158,7 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
             self._set_response(True)
 
     def do_GET(self):
-        self.logger.debug(f'GET request,\nPath: {self.path}\nHeaders:\n{self.headers}\n')
+        self.logger.success(f'GET request,\nPath: {self.path}\nHeaders:\n{self.headers}\n')
 
         if self.path.find(".exe"):
             self.logger.info(f"Requested: {self.path}")
@@ -174,7 +174,7 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
         post_data_xml = BeautifulSoup(post_data, "xml")
         data = None
 
-        self.logger.debug(f"POST Request,\nPath: {self.path}\nHeaders:\n{self.headers}\n\nBody:\n{post_data_xml.encode_contents()}\n")
+        self.logger.success(f"POST Request,\nPath: {self.path}\nHeaders:\n{self.headers}\n\nBody:\n{post_data_xml.encode_contents()}\n")
 
         soap_action = self.headers['SOAPAction']
 
@@ -220,6 +220,6 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
         self.logger.info(f'SOAP Action: {soap_action}')
 
         if data is not None:
-            self.logger.debug(f"POST Response,\nPath: {self.path}\nHeaders:\n{self.headers}\n\nBody:\n{data.encode_contents}\n")
+            self.logger.success(f"POST Response,\nPath: {self.path}\nHeaders:\n{self.headers}\n\nBody:\n{data.encode_contents}\n")
         else:
             self.logger.warning("POST Response without data.")

