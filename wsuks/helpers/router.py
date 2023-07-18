@@ -3,7 +3,7 @@
 
 import logging
 import traceback
-from scapy.all import sniff, IP, TCP, get_if_hwaddr, fragment
+from scapy.all import sniff, IP, TCP, get_if_hwaddr, fragment, TCPSession
 from scapy.sendrecv import sendp
 from threading import Thread
 
@@ -23,7 +23,7 @@ class Router:
         self.interface = None
 
     def _setRoute(self):
-        sniff(filter=f"tcp", prn=self._process_packet, store=0, iface=self.interface)
+        sniff(session=TCPSession, filter=f"tcp", prn=self._process_packet, store=0, iface=self.interface)
 
     def _process_packet(self, packet):
         if IP in packet and TCP in packet and packet[IP].src == self.targetIp and packet.dst == self.hostMac and packet[IP].dst == self.wsusIp:
@@ -35,7 +35,7 @@ class Router:
             frags = fragment(packet, fragsize=1000)
             try:
                 for frag in frags:
-                    sendp(frag, verbose=0, iface=self.interface)  # Paket weiterleiten
+                    sendp(frag, verbose=0, iface=self.interface)  # Send Package
             except Exception as e:
                 self.logger.error(f"Error while forwarding packet: {e}")
                 traceback.print_exc()
