@@ -74,7 +74,7 @@ class Wsuks:
 
         # Prepare WSUS Update Handler
         router = Router()
-        # router.start(self.targetIp, self.hostIp, self.wsusIp, self.interface)
+        router.start(self.targetIp, self.hostIp, self.wsusIp, self.interface)
 
         #t1 = Thread(target=self.run_sniff, args=(self))
         #t1.start()
