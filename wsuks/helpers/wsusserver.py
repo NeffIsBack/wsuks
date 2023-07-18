@@ -127,9 +127,10 @@ class WSUSUpdateHandler:
 
 
 class WSUSBaseServer(BaseHTTPRequestHandler):
-    def __init__(self, wsusUpdateHandler):
+    def __init__(self, wsusUpdateHandler, *args, **kwargs):
         self.logger = logging.getLogger("wsuks")
         self.wsusUpdateHandler = wsusUpdateHandler
+        super().__init__(*args, **kwargs)
 
     def _set_response(self, serveEXE=False):
 
