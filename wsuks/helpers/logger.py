@@ -25,6 +25,8 @@ class WsuksFormatter(logging.Formatter):
             record.bullet = colored("[!]", "yellow", attrs=['bold'])
         elif record.levelno == logging.ERROR:
             record.bullet = colored("[-]", "red", attrs=['bold'])
+        elif record.levelno == logging.CRITICAL:
+            record.bullet = colored("[CRITICAL]", "red", attrs=['bold', 'reverse'])
         elif record.levelno:
             record.bullet = '[ERROR]'
 
