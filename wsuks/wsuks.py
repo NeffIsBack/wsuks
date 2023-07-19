@@ -64,12 +64,12 @@ class Wsuks:
             self.logger.info(f"WSUS Server specified manually: {self.wsusIp}:{self.wsusPort}")
 
         # Start Arp Spoofing
-        arpspoofer = ArpSpoofer()
+        arpspoofer = ArpSpoofer(self.interface)
         arpspoofer.start(self.targetIp, self.wsusIp)
 
-        print(conf.route)
+        self.logger.debug(conf.route)
         conf.route.add(host=self.wsusIp, gw=self.hostIp)
-        print(conf.route)
+        self.logger.debug(conf.route)
 
         # Prepare WSUS Update Handler
         # router = Router()
@@ -91,7 +91,7 @@ class Wsuks:
             self.logger.info("Stopping WSUS Server...")
         finally:
             conf.route.resync()
-            print(conf.route)
+            self.logger.debug(conf.route)
             # router.stop()
             arpspoofer.stop()
 
