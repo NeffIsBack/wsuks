@@ -31,7 +31,6 @@ jobs:
     - name: Install poetry --python ${{ matrix.python-version }}
       run: |
         pipx install poetry --python python${{ matrix.python-version }}
-        poetry lock --no-update
         poetry --version
         poetry env info
     - name: Install dependencies and flake8
