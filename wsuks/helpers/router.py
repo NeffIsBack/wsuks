@@ -6,7 +6,7 @@ import traceback
 from scapy.all import sniff, IP, TCP, get_if_hwaddr, fragment, TCPSession
 from scapy.sendrecv import sendp
 from threading import Thread
-
+import nftables
 
 class Router:
     """

