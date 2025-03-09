@@ -91,7 +91,7 @@ class Wsuks:
             self.logger.info("Stopping WSUS Server...")
         finally:
             conf.route.resync()
-            self.logger.debug(conf.route)
+            # self.logger.debug(conf.route)
             # router.stop()
             arpspoofer.stop()
 

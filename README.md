@@ -23,12 +23,14 @@ Using pipx (recommended):
 sudo apt install python3-pipx
 pipx ensurepath
 pipx install wsuks
-sudo ln -s ~/.local/pipx/venvs/wsuks/bin/wsuks /usr/local/bin/wsuks
+sudo ln -s ~/.local/bin/wsuks /usr/local/sbin/wsuks
 ```
 
 Using poetry:
 ```
-sudo apt install python3-poetry
+sudo apt install pipx   # poetry should still be installed with pipx, but apt will work as well
+sudo pipx install poetry
+sudo ln -s /root/.local/bin/poetry /usr/local/sbin/poetry
 git clone https://github.com/NeffIsBack/wsuks
 cd wsuks
 sudo poetry install
