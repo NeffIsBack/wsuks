@@ -6,12 +6,13 @@ from argparse import RawTextHelpFormatter
 import importlib.metadata
 import wsuks
 from os.path import dirname
+from termcolor import colored
 
 __version__ = importlib.metadata.version('wsuks')
 
 
 def printBanner():
-    print(f"""
+    print(fr"""
     __          __ _____  _    _  _  __  _____
     \ \        / // ____|| |  | || |/ / / ____|
      \ \  /\  / /| (___  | |  | || ' / | (___
@@ -21,7 +22,7 @@ def printBanner():
 
      Pentesting Tool for the WSUS MITM Attack
                Made by NeffIsBack
-                 Version: {__version__}
+                 {colored('version', 'red', attrs=['bold'])}: {colored(__version__, 'yellow', attrs=['bold'])}
 """)
 
 
