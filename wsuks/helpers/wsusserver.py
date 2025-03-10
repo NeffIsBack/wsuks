@@ -151,7 +151,8 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_HEAD(self):
-        self.logger.success(f'HEAD request,\nPath: {self.path}\nHeaders:\n{self.headers}\n')
+        self.logger.success(f"Received HEAD request: {self.path}")
+        self.logger.debug(f'HEAD request,\nPath: {self.path}\nHeaders:\n{self.headers}\n')
 
         if self.path.find(".exe"):
             self.logger.info(f"Requested: {self.path}")
@@ -159,7 +160,8 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
             self._set_response(True)
 
     def do_GET(self):
-        self.logger.success(f'GET request,\nPath: {self.path}\nHeaders:\n{self.headers}\n')
+        self.logger.success(f"Received GET request: {self.path}")
+        self.logger.debug(f'GET request,\nPath: {self.path}\nHeaders:\n{self.headers}\n')
 
         if self.path.find(".exe"):
             self.logger.info(f"Requested: {self.path}")
@@ -175,9 +177,10 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
         post_data_xml = BeautifulSoup(post_data, "xml")
         data = None
 
-        self.logger.success(f"POST Request,\nPath: {self.path}\nHeaders:\n{self.headers}\n\nBody:\n{post_data_xml.encode_contents()}\n")
-
         soap_action = self.headers['SOAPAction']
+
+        self.logger.success(f"Received POST request: {self.path}, SOAP Action: {soap_action}")
+        self.logger.debug(f"POST Request,\nPath: {self.path}\nHeaders:\n{self.headers}\n\nBody:\n{post_data_xml.encode_contents()}\n")
 
         if soap_action == '"http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService/GetConfig"':
             # https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wusp/b76899b4-ad55-427d-a748-2ecf0829412b
@@ -204,23 +207,23 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
             data = BeautifulSoup(self.wsusUpdateHandler.report_event_batch_xml, "xml")
 
             post_data_report = BeautifulSoup(post_data, "xml")
-            self.logger.info(f'Client Report: {post_data_report.TargetID.text}, {post_data_report.ComputerBrand.text}, {post_data_report.ComputerModel.text}, {post_data_report.ExtendedData.ReplacementStrings.string}.')
+            self.logger.debug(f'Client Report: {post_data_report.TargetID.text}, {post_data_report.ComputerBrand.text}, {post_data_report.ComputerModel.text}, {post_data_report.ExtendedData.ReplacementStrings.string}.')
 
         elif soap_action == '"http://www.microsoft.com/SoftwareDistribution/Server/SimpleAuthWebService/GetAuthorizationCookie"':
             # https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wusp/44767c55-1e41-4589-aa01-b306e0134744
             data = BeautifulSoup(self.wsusUpdateHandler.get_authorization_cookie_xml, "xml")
 
         else:
-            self.logger.warning("SOAP Action not handled")
-            self.logger.info(f'SOAP Action: {soap_action}')
+            self.logger.warning(f"SOAP Action not handled: {soap_action}")
             return
 
         self._set_response()
         self.wfile.write(data.encode_contents())
 
-        self.logger.info(f'SOAP Action: {soap_action}')
-
         if data is not None:
-            self.logger.success(f"POST Response,\nPath: {self.path}\nHeaders:\n{self.headers}\n\nBody:\n{data.encode_contents}\n")
+            self.logger.debug(f"POST Response,\nPath: {self.path}\nHeaders:\n{self.headers}\n\nBody:\n{data.encode_contents}\n")
         else:
             self.logger.warning("POST Response without data.")
+
+    def log_message(self, format, *args):
+        return
