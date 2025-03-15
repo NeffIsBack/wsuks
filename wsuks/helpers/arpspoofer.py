@@ -67,14 +67,13 @@ class ArpSpoofer:
         Returns the default gateway IP address of the specified Interface
 
         :param iface: The interface to get the default gateway IP address from
-        :return: The default gateway IP address
+        :return: The default gateway IP address or None
         """
         try:
             return [x[2] for x in scapy.conf.route.routes if x[3] == iface and x[2] != '0.0.0.0'][0]
         except IndexError:
-            self.logger.error("Could not find default gateway IP address! Assuming now the host is the gateway.")
-            self.logger.error("This should only happen in LAB scenarios!")
-            return get_if_addr(self.interface)
+            self.logger.error(f"No gateway IP found for interface {iface}")
+            return None
 
     def check_spoofIp_subnet(self, targetIp, spoofIp):
         """
@@ -88,18 +87,19 @@ class ArpSpoofer:
         net_mask = ni.ifaddresses(self.interface)[ni.AF_INET][0]['netmask']
         interface_ip = get_if_addr(self.interface)
         subnet = IPv4Network(interface_ip + '/' + net_mask, False)
-        gateway = self.get_default_gateway_ip(self.interface)
 
         if ip_address(targetIp) not in subnet:
             self.logger.critical(f"Target IP address {targetIp} is not in the same subnet as the host! Forgot -I? Exiting...")
             sys.exit(1)
         elif ip_address(spoofIp) not in subnet:
-            if gateway == interface_ip:
-                self.logger.critical(f"WSUS IP address {spoofIp} is not in the same subnet and the host is the gateway!")
+            gateway = self.get_default_gateway_ip(self.interface)
+            if not gateway:
+                self.logger.critical(f"WSUS IP address {spoofIp} is not in the same subnet and {self.interface} has no gateway!")
                 self.logger.critical("Can't arp spoof the WSUS IP address! Exiting...")
                 sys.exit(1)
-            self.logger.warning(f"WSUS IP address {spoofIp} is not in the same subnet as the host! Spoofing now the gateway IP address: {gateway}")
-            return gateway
+            else:
+                self.logger.warning(f"WSUS IP address {spoofIp} is not in the same subnet as the host! Spoofing now the gateway IP address: {gateway}")
+                return gateway
         else:
             return spoofIp
 
