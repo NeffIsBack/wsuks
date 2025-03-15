@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 from ipaddress import ip_address, IPv4Network
 import logging
 import sys

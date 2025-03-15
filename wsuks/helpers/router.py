@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import logging
 from scapy.all import get_if_hwaddr
 try:

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from http.server import BaseHTTPRequestHandler
 import logging
 import traceback

