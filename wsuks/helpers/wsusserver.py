@@ -153,7 +153,7 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
         self.logger.debug(f'HEAD request,\nPath: {self.path}\nHeaders:\n{self.headers}\n')
 
         if self.path.find(".exe"):
-            self.logger.info(f"Requested: {self.path}")
+            self.logger.success(f"HEAD request for exe: {self.path}")
 
             self._set_response(True)
 
@@ -162,7 +162,7 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
         self.logger.debug(f'GET request,\nPath: {self.path}\nHeaders:\n{self.headers}\n')
 
         if self.path.find(".exe"):
-            self.logger.info(f"Requested: {self.path}")
+            self.logger.success(f"GET request for exe: {self.path}")
 
             self._set_response(True)
             self.wfile.write(self.wsusUpdateHandler.executable)
