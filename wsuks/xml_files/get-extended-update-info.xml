@@ -34,7 +34,7 @@
                         <Xml>
                             &lt;LocalizedProperties&gt;&lt;Language&gt;en&lt;/Language&gt;&lt;Title&gt;Bundle
                             Security Update for * Windows (from
-                            KB1234567)&lt;/Title&gt;&lt;Description&gt;A security issue has been
+                            KB{kb_number})&lt;/Title&gt;&lt;Description&gt;A security issue has been
                             identified in a Microsoft software product that could affect your
                             system. You can help protect your system by installing this update from
                             Microsoft. For a complete listing of the issues that are included in

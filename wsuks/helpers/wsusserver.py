@@ -32,6 +32,7 @@ class WSUSUpdateHandler:
         self.revision_ids = [randint(900000, 999999), randint(900000, 999999)]
         self.deployment_ids = [randint(80000, 99999), randint(80000, 99999)]
         self.uuids = [uuid.uuid4(), uuid.uuid4()]
+        self.kb_number = randint(1000000, 9999999)
 
         self.executable = executable_file
         self.executable_name = executable_name
@@ -72,7 +73,6 @@ class WSUSUpdateHandler:
                 file.close()
 
             with open(f"{path}/xml_files/sync-updates.xml") as file:
-                # TODO KB1234567 -> dynamic
                 self.sync_updates_xml = file.read().format(revision_id1=self.revision_ids[0],
                                                            revision_id2=self.revision_ids[1],
                                                            deployment_id1=self.deployment_ids[0],
@@ -86,6 +86,7 @@ class WSUSUpdateHandler:
             with open(f"{path}/xml_files/get-extended-update-info.xml") as file:
                 self.get_extended_update_info_xml = file.read().format(revision_id1=self.revision_ids[0],
                                                                        revision_id2=self.revision_ids[1],
+                                                                       kb_number=self.kb_number,
                                                                        sha1=self.sha1,
                                                                        sha256=self.sha256,
                                                                        filename=self.executable_name,
