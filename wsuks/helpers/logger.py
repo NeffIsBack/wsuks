@@ -5,39 +5,35 @@ from termcolor import colored
 
 
 class WsuksFormatter(logging.Formatter):
-    """
-    Prefixing logged messages through the custom attribute 'bullet'.
-    """
+    """Prefixing logged messages through the custom attribute 'bullet'."""
 
     def __init__(self):
-        logging.Formatter.__init__(self, '%(bullet)s %(message)s', None)
+        logging.Formatter.__init__(self, "%(bullet)s %(message)s", None)
 
     def format(self, record):
         if record.levelno == logging.DEBUG:
-            record.bullet = colored("DEBUG", "magenta", attrs=['bold'])
+            record.bullet = colored("DEBUG", "magenta", attrs=["bold"])
         elif record.levelno == logging.INFO:
-            record.bullet = colored("[*]", "blue", attrs=['bold'])
+            record.bullet = colored("[*]", "blue", attrs=["bold"])
         elif record.levelno == logging.SUCCESS:
-            record.bullet = colored("[+]", "green", attrs=['bold'])
+            record.bullet = colored("[+]", "green", attrs=["bold"])
         elif record.levelno == logging.WARNING:
-            record.bullet = colored("[!]", "yellow", attrs=['bold'])
+            record.bullet = colored("[!]", "yellow", attrs=["bold"])
         elif record.levelno == logging.ERROR:
-            record.bullet = colored("[-]", "red", attrs=['bold'])
+            record.bullet = colored("[-]", "red", attrs=["bold"])
         elif record.levelno == logging.CRITICAL:
-            record.bullet = colored("[CRITICAL]", "red", attrs=['bold', 'reverse'])
+            record.bullet = colored("[CRITICAL]", "red", attrs=["bold", "reverse"])
         elif record.levelno:
-            record.bullet = '[ERROR]'
+            record.bullet = "[ERROR]"
 
         return logging.Formatter.format(self, record)
 
 
 class WsuksFormatterTimeStamp(WsuksFormatter):
-    """
-    Prefixing logged messages through the custom attribute 'bullet'.
-    """
+    """Prefixing logged messages through the custom attribute 'bullet'."""
 
     def __init__(self):
-        logging.Formatter.__init__(self, '[%(asctime)-15s] %(bullet)s %(message)s', None)
+        logging.Formatter.__init__(self, "[%(asctime)-15s] %(bullet)s %(message)s", None)
 
     def formatTime(self, record):
         return WsuksFormatter.formatTime(self, record, datefmt="%Y-%m-%d %H:%M:%S")
@@ -45,11 +41,11 @@ class WsuksFormatterTimeStamp(WsuksFormatter):
 
 def addSuccessLogLevel(logger):
     logging.SUCCESS = 25  # between WARNING and INFO
-    logging.addLevelName(logging.SUCCESS, 'SUCCESS')
+    logging.addLevelName(logging.SUCCESS, "SUCCESS")
 
     def success(self, msg, *args, **kwargs):
         logger._log(25, msg, args, **kwargs)
-    setattr(logging.getLoggerClass(), 'success', success)
+    logging.getLoggerClass().success = success
 
 
 def initLogger(ts=False, debug=False):

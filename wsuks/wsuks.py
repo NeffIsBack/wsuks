@@ -69,7 +69,7 @@ class Wsuks:
         router.start()
 
         # Prepare WSUS HTTP Server
-        update_handler = WSUSUpdateHandler(self.executable_file, self.executable_name, f'{self.hostIp}:{self.wsusPort}')
+        update_handler = WSUSUpdateHandler(self.executable_file, self.executable_name, f"{self.hostIp}:{self.wsusPort}")
         update_handler.set_resources_xml(self.command)
 
         self.logger.debug(update_handler)
@@ -80,7 +80,7 @@ class Wsuks:
             self.logger.info(f"Starting WSUS Server on {self.hostIp}:{self.wsusPort}...")
             http_server.serve_forever()
         except KeyboardInterrupt:
-            print("")
+            print()
             self.logger.info("Stopping WSUS Server...")
         finally:
             arpspoofer.stop()
@@ -88,7 +88,7 @@ class Wsuks:
 
 
 def highlight(text, color):
-    return colored(text, color, attrs=['bold'])
+    return colored(text, color, attrs=["bold"])
 
 
 def main():
@@ -97,10 +97,10 @@ def main():
     args = initParser()
 
     logger = initLogger(debug=args.debug)
-    logger.debug('Passed args:\n' + pformat(vars(args)))
+    logger.debug("Passed args:\n" + pformat(vars(args)))
 
     # Prevent scapy from logging to console
-    logging.getLogger('scapy').disabled = True
+    logging.getLogger("scapy").disabled = True
     logging.getLogger("scapy.runtime").disabled = True
 
     if os.geteuid() != 0:
@@ -111,5 +111,5 @@ def main():
     wsuks.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

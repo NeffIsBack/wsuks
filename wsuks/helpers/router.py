@@ -7,10 +7,9 @@ except ImportError:
     logger.error("nftables is not installed. Please install nftables to use the Router class. See installation instructions in the README.md.")
     exit(1)
 
+
 class Router:
-    """
-    This class is used to enable MITM attacks with ARP spoofing.
-    """
+    """Takes care of routing ARP spoofed traffic to the local HTTP server."""
 
     def __init__(self, targetIp, hostIp, wsusIp, wsusPort, interface):
         self.logger = logging.getLogger("wsuks")

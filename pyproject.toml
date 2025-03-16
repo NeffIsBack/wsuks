@@ -27,6 +27,38 @@ wsuks = "wsuks.wsuks:main"
 [tool.poetry]
 packages = [{ include = "wsuks" }]
 
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.11.0"
+
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+select = [
+    "E", "F", "D", "UP", "YTT", "ASYNC", "B", "A", "C4", "ISC", "ICN", "PIE", "PT",
+    "Q", "RSE", "RET", "SIM", "TID", "ERA", "FLY", "PERF", "FURB", "LOG", "RUF"
+]
+ignore = [
+    "E501", "F405", "D100", "D101", "D102", "D103", "D104", "D105", "D106",
+    "D107", "D203", "D204", "D205", "D212", "D213", "D400", "D401", "D415",
+    "D417", "D419", "RET503", "RET505", "RET506", "RET507", "RET508",
+    "PERF203", "RUF012"
+]
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+exclude = [
+    ".bzr", ".direnv", ".eggs", ".git", ".git-rewrite", ".hg", ".mypy_cache",
+    ".nox", ".pants.d", ".pytype", ".ruff_cache", ".svn", ".tox", ".venv",
+    "__pypackages__", "_build", "buck-out", "build", "dist", "node_modules", "venv"
+]
+per-file-ignores = {}
+line-length = 65000
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+target-version = "py38"

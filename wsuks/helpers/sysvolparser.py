@@ -5,7 +5,7 @@ import traceback
 from impacket.smbconnection import SMBConnection
 
 
-class SysvolParser():
+class SysvolParser:
     def __init__(self):
         self.logger = logging.getLogger("wsuks")
         self.smbClient = None
@@ -13,7 +13,7 @@ class SysvolParser():
         self.wsusIp = None
         self.wsusPort = None  # Default 8530
 
-    def _createSMBConnection(self, domain, username, password, dcIp, kerberos=False, lmhash='', nthash='', aesKey=''):
+    def _createSMBConnection(self, domain, username, password, dcIp, kerberos=False, lmhash="", nthash="", aesKey=""):
         """
         Create a SMB connection to the target
         """
@@ -21,7 +21,7 @@ class SysvolParser():
         # TODO: Fix remoteName in SMBConnection if this is a bug
         # TODO: Add Kerberos Authentication
         try:
-            self.smbClient = SMBConnection(remoteName=dcIp, remoteHost=dcIp, sess_port=int(445))
+            self.smbClient = SMBConnection(remoteName=dcIp, remoteHost=dcIp, sess_port=445)
 
             if kerberos is True:
                 self.smbClient.kerberosLogin(username, password, domain, lmhash, nthash, aesKey, dcIp)

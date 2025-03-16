@@ -10,10 +10,9 @@ from threading import Thread
 import os
 import signal
 
+
 class ArpSpoofer:
-    """
-    This class is used to enable MITM attacks with ARP spoofing.
-    """
+    """Enable MITM attacks with ARP spoofing."""
 
     def __init__(self, interface):
         self.logger = logging.getLogger("wsuks")
@@ -70,7 +69,7 @@ class ArpSpoofer:
         :return: The default gateway IP address or None
         """
         try:
-            return [x[2] for x in scapy.conf.route.routes if x[3] == iface and x[2] != '0.0.0.0'][0]
+            return [x[2] for x in scapy.conf.route.routes if x[3] == iface and x[2] != "0.0.0.0"][0]  # noqa: RUF015
         except IndexError:
             self.logger.error(f"No gateway IP found for interface {iface}")
             return None
@@ -84,9 +83,9 @@ class ArpSpoofer:
         :param targetIp: The victim's IP address
         :param spoofIp: The IP address to spoof
         """
-        net_mask = ni.ifaddresses(self.interface)[ni.AF_INET][0]['netmask']
+        net_mask = ni.ifaddresses(self.interface)[ni.AF_INET][0]["netmask"]
         interface_ip = get_if_addr(self.interface)
-        subnet = IPv4Network(interface_ip + '/' + net_mask, False)
+        subnet = IPv4Network(interface_ip + "/" + net_mask, False)
 
         if ip_address(targetIp) not in subnet:
             self.logger.critical(f"Target IP address {targetIp} is not in the same subnet as the host! Forgot -I? Exiting...")
@@ -119,9 +118,7 @@ class ArpSpoofer:
         t1.start()
 
     def stop(self):
-        """
-        Stop the ARP spoofing process.
-        """
+        """Stop the ARP spoofing process."""
         if self.isRunning and self.targetIp and self.spoofIp:
             self.logger.info(f"Stopping ARP spoofing for target {self.targetIp}")
             self.isRunning = False
