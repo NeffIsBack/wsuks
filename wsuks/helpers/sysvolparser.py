@@ -3,32 +3,31 @@ import logging
 import sys
 import traceback
 from impacket.smbconnection import SMBConnection
+import contextlib
 
 
 class SysvolParser:
     def __init__(self):
         self.logger = logging.getLogger("wsuks")
-        self.smbClient = None
+        self.conn = None
         self.share = "SYSVOL"
         self.wsusIp = None
         self.wsusPort = None  # Default 8530
 
     def _createSMBConnection(self, domain, username, password, dcIp, kerberos=False, lmhash="", nthash="", aesKey=""):
-        """
-        Create a SMB connection to the target
-        """
+        """Create a SMB connection to the target"""
         # SMB Login would be ready for kerberos or NTLM Hashes Authentication if it is needed
         # TODO: Fix remoteName in SMBConnection if this is a bug
         # TODO: Add Kerberos Authentication
         try:
-            self.smbClient = SMBConnection(remoteName=dcIp, remoteHost=dcIp, sess_port=445)
+            self.conn = SMBConnection(remoteHost=dcIp, sess_port=445)
 
             if kerberos is True:
-                self.smbClient.kerberosLogin(username, password, domain, lmhash, nthash, aesKey, dcIp)
+                self.conn.kerberosLogin(username, password, domain, lmhash, nthash, aesKey, dcIp)
             else:
-                self.smbClient.login(username, password, domain, lmhash, nthash)
+                self.conn.login(username, password, domain, lmhash, nthash)
             self.logger.debug("SMB Connection Established")
-            if self.smbClient.isGuestSession() > 0:
+            if self.conn.isGuestSession() > 0:
                 self.logger.debug("GUEST Session Granted")
             else:
                 self.logger.debug("USER Session Granted")
@@ -37,17 +36,10 @@ class SysvolParser:
             if self.logger.level == logging.DEBUG:
                 traceback.print_exc()
 
-        return self.smbClient
+        return self.conn
 
     def _extractWsusServerSYSVOL(self):
         return self.wsusIp, self.wsusPort
-
-    def _closeConnection(self):
-        """
-        Close the SMB connection
-        """
-        self.smbClient.close()
-        self.logger.debug("SMB Connection Closed")
 
     def findWsusServer(self, domain, username, password, dcIp):
         try:
@@ -60,7 +52,7 @@ class SysvolParser:
         """
         Get the WSUS server from the sysvol share
 
-        :param smbClient: SMB connection to Domain Controller
+        :param conn: SMB connection to Domain Controller
         :return: WSUS server IP and Port
         """
         if not username or not password or not dcIp or not domain:
@@ -76,10 +68,8 @@ class SysvolParser:
             if self.logger.level == logging.DEBUG:
                 traceback.print_exc()
         finally:
-            try:
-                self._closeConnection()
-            except:
-                pass
+            with contextlib.suppress(Exception):
+                self.conn.close()
 
         if not self.wsusIp or not self.wsusPort:
             self.logger.error("Error: WSUS-Server-IP not set. Try to specify the WSUS Server manually with --WSUS-Server and -WSUS-Port. Exiting...")
