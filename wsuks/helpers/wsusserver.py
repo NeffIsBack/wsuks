@@ -139,8 +139,7 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
     def _set_response(self, serveEXE=False):
         self.protocol_version = "HTTP/1.1"
         self.send_response(200)
-        # self.server_version = 'Microsoft-IIS/10.0'
-        # self.send_header('Accept-Ranges', 'bytes')
+        self.server_version = "Microsoft-IIS/10.0"
         self.send_header("Cache-Control", "private")
 
         if serveEXE:
