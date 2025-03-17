@@ -21,27 +21,24 @@ jobs:
       max-parallel: 5
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install poetry --python ${{ matrix.python-version }}
-      run: |
-        pipx install poetry --python python${{ matrix.python-version }}
-        poetry --version
-        poetry env info
-    - name: Install dependencies and flake8
-      run: |
-        poetry install
-        poetry add flake8 --group dev
-    - name: Check syntax errors and undefined names
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-    - name: Lint with flake8
-      run: |
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        poetry run flake8 . --count --exit-zero --extend-ignore=W605,E501 --max-complexity=10 --statistics
+      - uses: actions/checkout@v4
+      - name: Install poetry
+        run: |
+          pipx install poetry
+          poetry --version
+          poetry env info
+      - name: wsuks set up python ${{ matrix.python-version }} on ${{ matrix.os }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: poetry
+          cache-dependency-path: poetry.lock
+      - name: Install libraries with dev group
+        run: |
+          poetry install --with dev
+      - name: Run ruff
+        run: |
+          poetry run ruff --version
+          poetry run ruff check . --preview

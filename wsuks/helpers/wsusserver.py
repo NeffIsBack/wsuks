@@ -18,6 +18,7 @@ class WSUSUpdateHandler:
     Handling incoming HTTP requests for WSUS server.
     Mostly inspired by https://github.com/GoSecure/pywsus
     """
+
     def __init__(self, executable_file, executable_name, client_address):
         self.logger = logging.getLogger("wsuks")
 
