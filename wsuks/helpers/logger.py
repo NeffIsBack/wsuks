@@ -35,7 +35,7 @@ class WsuksFormatterTimeStamp(WsuksFormatter):
     def __init__(self):
         logging.Formatter.__init__(self, "[%(asctime)-15s] %(bullet)s %(message)s", None)
 
-    def formatTime(self, record):
+    def formatTime(self, record, datefmt=None):
         return WsuksFormatter.formatTime(self, record, datefmt="%Y-%m-%d %H:%M:%S")
 
 

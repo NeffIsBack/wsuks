@@ -96,7 +96,7 @@ def main():
     printBanner()
     args = initParser()
 
-    logger = initLogger(debug=args.debug)
+    logger = initLogger(ts=args.timestamp, debug=args.debug)
     logger.debug("Passed args:\n" + pformat(vars(args)))
 
     # Prevent scapy from logging to console
