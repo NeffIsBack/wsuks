@@ -1,9 +1,13 @@
 
 import logging
+import re
+import socket
 import sys
 import traceback
-from impacket.smbconnection import SMBConnection
 import contextlib
+from impacket.smbconnection import SMBConnection, SessionError
+from ipaddress import ip_address
+from wsuks.helpers.regpol_parser import RegistryPolicy
 
 
 class SysvolParser:
@@ -14,19 +18,24 @@ class SysvolParser:
         self.wsusIp = None
         self.wsusPort = None  # Default 8530
 
+        # Login info
+        self.username = ""
+        self.password = ""
+        self.dcIp = ""
+        self.domain = ""
+
     def _createSMBConnection(self, domain, username, password, dcIp, kerberos=False, lmhash="", nthash="", aesKey=""):
         """Create a SMB connection to the target"""
         # SMB Login would be ready for kerberos or NTLM Hashes Authentication if it is needed
         # TODO: Fix remoteName in SMBConnection if this is a bug
         # TODO: Add Kerberos Authentication
         try:
-            self.conn = SMBConnection(remoteHost=dcIp, sess_port=445)
+            self.conn = SMBConnection(remoteName=dcIp, remoteHost=dcIp, sess_port=445)
 
             if kerberos is True:
                 self.conn.kerberosLogin(username, password, domain, lmhash, nthash, aesKey, dcIp)
             else:
                 self.conn.login(username, password, domain, lmhash, nthash)
-            self.logger.debug("SMB Connection Established")
             if self.conn.isGuestSession() > 0:
                 self.logger.debug("GUEST Session Granted")
             else:
@@ -39,29 +48,65 @@ class SysvolParser:
         return self.conn
 
     def _extractWsusServerSYSVOL(self):
-        return self.wsusIp, self.wsusPort
+        def output_callback(data):
+            self.reg_data += data
+
+        policies = self.conn.listPath("SYSVOL", f"{self.domain}/Policies/*")
+        for policy in policies:
+            try:
+                self.reg_data = b""
+                self.conn.getFile("SYSVOL", f"{self.domain}/Policies/{policy.get_longname()}/Machine/Registry.pol", output_callback)
+                reg_pol = RegistryPolicy(self.reg_data).get_policies()
+                for pol in reg_pol:
+                    if pol["key"] == "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate" and pol["value"] == "WUServer":
+                        try:
+                            scheme, hostname, wsusPort = re.search(r"^(https?)://(.+):(\d+)$", pol["data"]).groups()
+                            if scheme == "http":
+                                self.logger.success(f"Found vulnerable WSUS Server using HTTP: {scheme}://{hostname}:{wsusPort}")
+                                return hostname, wsusPort
+                            elif scheme == "https":
+                                self.logger.critical(f"Found WSUS Server using HTTPS: {scheme}://{hostname}:{wsusPort}")
+                                self.logger.critical("This is not vulnerable to WSUS Attack. Exiting...")
+                                sys.exit(1)
+                        except Exception as e:
+                            self.logger.error(f"Found WSUS Policy, but could not parse value: {e}")
+                            self.logger.error(f"Policy: {pol}")
+            except SessionError as e:
+                self.logger.debug(f"Error: {e}")
+            except Exception as e:
+                self.logger.error(f"Error: {e}")
+                if self.logger.level == logging.DEBUG:
+                    traceback.print_exc()
+        return None, None
 
     def findWsusServer(self, domain, username, password, dcIp):
-        try:
-            raise NotImplementedError("Autodiscovery from WSUS Server not implemented yet")
-        except Exception as e:
-            self.logger.error(f"Error: {e}")
-            if self.logger.level == logging.DEBUG:
-                traceback.print_exc()
-            sys.exit(1)
         """
-        Get the WSUS server from the sysvol share
+        Get the WSUS server IP address from GPOs of the SYSVOL share
 
-        :param conn: SMB connection to Domain Controller
+        :param domain: Domain name
+        :param username: Username
+        :param password: Password
+        :param dcIp: Domain Controller IP
         :return: WSUS server IP and Port
         """
         if not username or not password or not dcIp or not domain:
             self.logger.error("Error: Domain Controller IP, Username, Password and Domain are required to search for WSUS Server in SYSVOL Share. Exiting...")
             sys.exit(1)
 
+        self.username = username
+        self.password = password
+        self.dcIp = dcIp
+        self.domain = domain
+
         try:
             self._createSMBConnection(domain, username, password, dcIp)
-            self.wsusIp, self.wsusPort = self._extractWsusServerSYSVOL()
+            hostname, self.wsusPort = self._extractWsusServerSYSVOL()
+            # Check if hostname is an IP Address, if not resolve it
+            try:
+                self.wsusIp = ip_address(hostname)
+            except ValueError:
+                self.logger.debug(f"Hostname '{hostname}' is not an IP Address, trying to resolve hostname.")
+                self.wsusIp = ip_address(socket.gethostbyname(hostname))
         except Exception as e:
             self.logger.error(f"Error: {e}")
             self.logger.error("Error while looking for WSUS Server in SYSVOL Share.")
