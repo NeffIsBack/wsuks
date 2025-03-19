@@ -79,7 +79,7 @@ class SysvolParser:
                     traceback.print_exc()
         return None, None
 
-    def findWsusServer(self, domain, username, password, dcIp):
+    def findWsusServer(self, domain, username, password, dcIp) -> tuple[str, int]:
         """
         Get the WSUS server IP address from GPOs of the SYSVOL share
 
@@ -87,7 +87,7 @@ class SysvolParser:
         :param username: Username
         :param password: Password
         :param dcIp: Domain Controller IP
-        :return: WSUS server IP and Port
+        :return: WSUS Server IP and Port
         """
         if not username or not password or not dcIp or not domain:
             self.logger.error("Error: Domain Controller IP, Username, Password and Domain are required to search for WSUS Server in SYSVOL Share. Exiting...")
@@ -103,10 +103,10 @@ class SysvolParser:
             hostname, self.wsusPort = self._extractWsusServerSYSVOL()
             # Check if hostname is an IP Address, if not resolve it
             try:
-                self.wsusIp = ip_address(hostname)
+                self.wsusIp = str(ip_address(hostname))
             except ValueError:
                 self.logger.debug(f"Hostname '{hostname}' is not an IP Address, trying to resolve hostname.")
-                self.wsusIp = ip_address(socket.gethostbyname(hostname))
+                self.wsusIp = socket.gethostbyname(hostname)
         except Exception as e:
             self.logger.error(f"Error: {e}")
             self.logger.error("Error while looking for WSUS Server in SYSVOL Share.")
@@ -120,4 +120,4 @@ class SysvolParser:
             self.logger.error("Error: WSUS-Server-IP not set. Try to specify the WSUS Server manually with --WSUS-Server and -WSUS-Port. Exiting...")
             sys.exit(1)
 
-        return self.wsusIp, self.wsusPort
+        return self.wsusIp, int(self.wsusPort)
