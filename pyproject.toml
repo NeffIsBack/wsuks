@@ -14,7 +14,8 @@ dependencies = [
     "termcolor (>=2.4.0,<3.0.0)",
     "bs4 (>=0.0.2,<0.0.3)",
     "lxml (>=5.3.1,<6.0.0)",
-    "netifaces (>=0.11.0,<0.12.0)"
+    "netifaces (>=0.11.0,<0.12.0)",
+    "registrypol (>=1.0.0,<2.0.0)",
 ]
 
 [project.urls]

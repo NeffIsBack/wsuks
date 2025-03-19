@@ -869,6 +869,18 @@ files = [
 dev = ["build", "flake8", "mypy", "pytest", "twine"]
 
 [[package]]
+name = "registrypol"
+version = "1.0.0"
+description = "Windows Registry Policy parser and emitter for Python"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "registrypol-1.0.0-py3-none-any.whl", hash = "sha256:6197eeb1828718134e5320a7585d4370e5ac20c0aefbc582e33697eb5aed3a13"},
+    {file = "registrypol-1.0.0.tar.gz", hash = "sha256:98410c6a76ce5340f9b4af1c17bb94d9fb2ced985e329b6a3b4db2af4bc91221"},
+]
+
+[[package]]
 name = "ruff"
 version = "0.11.0"
 description = "An extremely fast Python linter and code formatter, written in Rust."
@@ -1027,4 +1039,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<4.0"
-content-hash = "63fbb111a8f4c9c8d693d483569c091ad5e0cc353c7a1e7ab49662df50649d42"
+content-hash = "e5cfb2492d71443dfa9f23683f5fe37ae38535b98e776147760712796c80eeb8"
