@@ -60,6 +60,7 @@ class Wsuks:
         else:
             self.logger.info(f"WSUS Server specified manually: {self.wsusIp}:{self.wsusPort}")
 
+        self.logger.info("===== Setup done, starting services =====")
         # Start Arp Spoofing
         arpspoofer = ArpSpoofer(self.interface)
         arpspoofer.start(self.targetIp, self.wsusIp)
@@ -81,6 +82,7 @@ class Wsuks:
             http_server.serve_forever()
         except KeyboardInterrupt:
             print()
+            self.logger.info("===== Stopping Services =====")
             self.logger.info("Stopping WSUS Server...")
         finally:
             arpspoofer.stop()
