@@ -45,7 +45,7 @@ class Router:
         nft delete table ip wsuks
         """
         if self.isRunning and self.targetIp:
-            self.logger.info("Stop NATing: Delete 'wsuks' routing table")
+            self.logger.info("Stop routing: Delete 'wsuks' routing table")
             self.nft.cmd("flush table ip wsuks")
             self.nft.cmd("delete table ip wsuks")
             self.isRunning = False

