@@ -15,7 +15,7 @@ Prerequisits:
 Result:
 - After successful execution the user provided will be added to the local admin group. If no user was specified a user with the format user[0-9]{5} (e.g. user12345) and a random password will be created
 
-## Installation
+## Installation 🖥️
 Using pipx (recommended):
 ```shell
 sudo apt install pipx python3-nftables
@@ -34,13 +34,13 @@ cd wsuks
 sudo poetry install
 ```
 
-## Usage
+## Usage 🛠️
 ❗wsuks must be run as root❗
 
 With pipx, you can just run `sudo wsuks ...` anywhere on the system.\
 If you are using poetry, you must be in the wsuks folder and start each command with `sudo poetry run wsuks ...`
 
-
+There are 3 different modes/attack scenarios in which wsuks can be run, which are described below.
 ### Specify known WSUS-Server and create local admin user:
 If the WSUS server is already known, you can simply specify the target IP and the WSUS server IP.\
 The default executable is PsExec64.exe, which runs a predefined PowerShell script with the following actions:
@@ -67,12 +67,12 @@ A PowerShell script is executed, which will add the provided domain user to the 
 sudo wsuks -t 10.0.0.10 -u User -p Password -d domain.local --dc-ip 10.0.0.1
 ```
 
-## Demo
+## Demo 🎥
 Here is a short demo of the attack with a known WSUS server:
 ![Demo of the WSUS attack](media/wsuks-demo.gif)
 
 
-## About & Mitigation
+## About & Mitigation 🛡️
 In the [PyWSUS](https://github.com/GoSecure/pywsus) Repository from GoSecure you can find a great documentation how to you could detect and mitigate this attack.
 They also wrote a great Guide demonstrating how this attack works in detail [here](https://www.gosecure.net/blog/2020/09/03/wsus-attacks-part-1-introducing-pywsus/).
 
