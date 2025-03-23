@@ -3,10 +3,11 @@
 # wsuks
 _Automating the WSUS Attack_
 
-Gaining local administrative access to a Windows machine that is part of a domain is typically the first step in gaining domain admin privileges during a penetration test. To automatically exploit the WSUS attack, this tool spoofs the IP address of the WSUS server on the network using ARP, and when the client requests Windows updates, it provides its own malicious updates instead.
-By default, a Windows client requests updates approximately every 24 hours.
+Gaining local administrative access to a Windows machine that is part of a domain is typically the first step in gaining domain admin privileges during a penetration test. In many cases, the Windows Server Update Service (WSUS) is configured to deploy updates to clients over the local network using HTTP. Without the security of HTTPS, an attacker can mount a machine-in-the-middle attack to serve an update to the client, which will then execute with SYSTEM privileges. Any Microsoft signed executable can be served as an update, including a custom command with which the executable is executed.
 
-Both the executable file served (default: PsExec64.exe) and the executed command can be changed as needed.
+To automatically exploit the WSUS attack, this tool spoofs the IP address of the WSUS server on the network using ARP, and when the client requests Windows updates, it serves PsExec64.exe with a predefined PowerShell script to gain local admin privileges. Both the executable file that is served (default: PsExec64.exe) and the command that is executed can be changed if required.\
+By default, a Windows client will check for updates approximately every 24 hours.
+
 
 Prerequisits:
 - The target client must be on the local network
