@@ -106,7 +106,10 @@ class SysvolParser:
                 self.wsusIp = str(ip_address(hostname))
             except ValueError:
                 self.logger.debug(f"Hostname '{hostname}' is not an IP Address, trying to resolve hostname.")
-                self.wsusIp = socket.gethostbyname(hostname)
+                try:
+                    self.wsusIp = socket.gethostbyname(hostname)
+                except socket.gaierror:
+                    self.logger.error(f"Error: Could not resolve hostname '{hostname}'.")
         except Exception as e:
             self.logger.error(f"Error: {e}")
             self.logger.error("Error while looking for WSUS Server in SYSVOL Share.")
@@ -117,7 +120,7 @@ class SysvolParser:
                 self.conn.close()
 
         if not self.wsusIp or not self.wsusPort:
-            self.logger.error("Error: WSUS-Server-IP not set. Try to specify the WSUS Server manually with --WSUS-Server and -WSUS-Port. Exiting...")
+            self.logger.error("Error: WSUS-Server-IP not set. Try to specify the WSUS Server manually with --WSUS-Server and --WSUS-Port. Exiting...")
             sys.exit(1)
 
         return self.wsusIp, int(self.wsusPort)
