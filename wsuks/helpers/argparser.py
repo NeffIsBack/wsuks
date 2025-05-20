@@ -45,6 +45,7 @@ def initParser():
     simple.add_argument("-p", "--password", metavar="", help="Password to authenticate with")
     simple.add_argument("--dc-ip", metavar="", dest="dcIp", help="IP Address of the domain controller")
     simple.add_argument("-d", "--domain", metavar="", help="Domain to authenticate with")
+    simple.add_argument("--only-discover", action="store_true", help="Only discover the WSUS Server and exit")
 
     advanced = parser.add_argument_group("MANUAL MODE", "If you know the WSUS Server, you can use this mode to skip the automatic discovery.")
     advanced.add_argument("--WSUS-Server", metavar="", dest="wsusIp", help="IP Address of the WSUS Server.")
