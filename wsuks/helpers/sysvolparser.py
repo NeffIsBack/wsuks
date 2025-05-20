@@ -40,10 +40,12 @@ class SysvolParser:
                 self.logger.debug("GUEST Session Granted")
             else:
                 self.logger.debug("USER Session Granted")
+            return True
         except Exception as e:
             self.logger.error(f"Error: {e}")
             if self.logger.level == logging.DEBUG:
                 traceback.print_exc()
+            return False
 
         return self.conn
 
@@ -99,17 +101,17 @@ class SysvolParser:
         self.domain = domain
 
         try:
-            self._createSMBConnection(domain, username, password, dcIp)
-            hostname, self.wsusPort = self._extractWsusServerSYSVOL()
-            # Check if hostname is an IP Address, if not resolve it
-            try:
-                self.wsusIp = str(ip_address(hostname))
-            except ValueError:
-                self.logger.debug(f"Hostname '{hostname}' is not an IP Address, trying to resolve hostname.")
+            if self._createSMBConnection(domain, username, password, dcIp):
+                hostname, self.wsusPort = self._extractWsusServerSYSVOL()
+                # Check if hostname is an IP Address, if not resolve it
                 try:
-                    self.wsusIp = socket.gethostbyname(hostname)
-                except socket.gaierror:
-                    self.logger.error(f"Error: Could not resolve hostname '{hostname}'.")
+                    self.wsusIp = str(ip_address(hostname))
+                except ValueError:
+                    self.logger.debug(f"Hostname '{hostname}' is not an IP Address, trying to resolve hostname.")
+                    try:
+                        self.wsusIp = socket.gethostbyname(hostname)
+                    except socket.gaierror:
+                        self.logger.error(f"Error: Could not resolve hostname '{hostname}'.")
         except Exception as e:
             self.logger.error(f"Error: {e}")
             self.logger.error("Error while looking for WSUS Server in SYSVOL Share.")
