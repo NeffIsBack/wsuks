@@ -77,6 +77,8 @@ A PowerShell script is executed, which will add the provided domain user to the 
 sudo wsuks -t 10.0.0.10 -u User -p Password -d domain.local --dc-ip 10.0.0.1
 ```
 
+**Tipp:** If you only want to check for a WSUS server, you can use the `--only-discover` flag.
+
 ## Demo 🎥
 Here is a short demo of the attack with a known WSUS server:
 ![Demo of the WSUS attack](media/wsuks-demo.gif)
