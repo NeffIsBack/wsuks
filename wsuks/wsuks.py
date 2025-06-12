@@ -73,8 +73,7 @@ class Wsuks:
             self.logger.info(f"WSUS Server specified manually: {self.wsusIp}:{self.wsusPort}")
 
         if self.args.only_discover:
-            self.logger.info(f"WSUS Server found: {self.wsusIp}:{self.wsusPort}")
-            self.logger.info("Exiting...")
+            self.logger.info("Discovered WSUS Server, Exiting...")
             return
 
         self.logger.info("===== Setup done, starting services =====")

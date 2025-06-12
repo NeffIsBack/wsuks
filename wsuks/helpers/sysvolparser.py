@@ -116,15 +116,17 @@ class SysvolParser:
         try:
             self._createSMBConnection(domain, username, password, dcIp, kerberos, dcName)
             host, self.wsusPort = self._extractWsusServerSYSVOL()
+
             # Check if host is an IP Address, if not resolve it
-            try:
-                self.wsusIp = str(ip_address(host))
-            except ValueError:
-                self.logger.debug(f"Host '{host}' is not an IP Address, trying to resolve host.")
+            if host and self.wsusPort:
                 try:
-                    self.wsusIp = socket.gethostbyname(host)
-                except socket.gaierror:
-                    self.logger.error(f"Error: Could not resolve host '{host}'.")
+                    self.wsusIp = str(ip_address(host))
+                except ValueError:
+                    self.logger.debug(f"Host '{host}' is not an IP Address, trying to resolve host.")
+                    try:
+                        self.wsusIp = socket.gethostbyname(host)
+                    except socket.gaierror:
+                        self.logger.error(f"Error: Could not resolve host '{host}'.")
         except Exception as e:
             self.logger.error(f"Error while looking for WSUS Server in SYSVOL Share: {e}")
             if self.logger.level == logging.DEBUG:
