@@ -51,6 +51,8 @@ class SysvolParser:
         def output_callback(data):
             self.reg_data += data
 
+        possible_wsus_locations = []
+
         policies = self.conn.listPath("SYSVOL", f"{self.domain}/Policies/*")
         for policy in policies:
             try:
@@ -60,24 +62,31 @@ class SysvolParser:
                 for pol in reg_pol:
                     if pol["key"] == "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate" and pol["value"] == "WUServer":
                         try:
-                            scheme, hostname, wsusPort = re.search(r"^(https?)://(.+):(\d+)$", pol["data"]).groups()
-                            if scheme == "http":
-                                self.logger.success(f"Found vulnerable WSUS Server using HTTP: {scheme}://{hostname}:{wsusPort}")
-                                return hostname, wsusPort
-                            elif scheme == "https":
-                                self.logger.critical(f"Found WSUS Server using HTTPS: {scheme}://{hostname}:{wsusPort}")
-                                self.logger.critical("This is not vulnerable to WSUS Attack. Exiting...")
-                                sys.exit(1)
+                            scheme, host, wsusPort = re.search(r"^(https?)://(.+):(\d+)$", pol["data"]).groups()
+                            possible_wsus_locations.append({"name":policy.get_shortname(), "scheme": scheme, "host": host, "port": int(wsusPort)})
                         except Exception as e:
-                            self.logger.error(f"Found WSUS Policy, but could not parse value: {e}")
-                            self.logger.error(f"Policy: {pol}")
+                            self.logger.error(f"Could not parse WSUS Policy (error: {e}): {pol}")
             except SessionError as e:
                 self.logger.debug(f"Error: {e}")
             except Exception as e:
                 self.logger.error(f"Error: {e}")
                 if self.logger.level == logging.DEBUG:
                     traceback.print_exc()
-        return None, None
+
+        # Check if we found any WSUS Policies
+        if len(possible_wsus_locations) == 1:
+            if scheme == "http":
+                self.logger.success(f"Found vulnerable WSUS Server using HTTP: {scheme}://{host}:{wsusPort}")
+                return host, wsusPort
+            elif scheme == "https":
+                self.logger.critical(f"Found WSUS Server using HTTPS: {scheme}://{host}:{wsusPort}")
+                self.logger.critical("Not vulnerable to WSUS Attack. Exiting...")
+                sys.exit(1)
+        elif len(possible_wsus_locations) > 1:
+            self.logger.warning("Found multiple WSUS Policies, please specify the WSUS Server manually with --WSUS-Server and --WSUS-Port.")
+            for policy in possible_wsus_locations:
+                self.logger.warning(f"Found WSUS Server Policy '{policy['name']}', target URL: {policy['scheme']}://{policy['host']}:{policy['port']}")
+            sys.exit(1)
 
     def findWsusServer(self, domain, username, password, dcIp) -> tuple[str, int]:
         """
