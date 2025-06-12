@@ -77,7 +77,9 @@ class SysvolParser:
                     traceback.print_exc()
 
         # Check if we found any WSUS Policies
-        if len(possible_wsus_locations) == 1:
+        if not possible_wsus_locations:
+            self.logger.error("Error: No WSUS policies found in SYSVOL Share.")
+        elif len(possible_wsus_locations) == 1:
             if scheme == "http":
                 self.logger.success(f"Found vulnerable WSUS Server using HTTP: {scheme}://{host}:{wsusPort}")
                 return host, wsusPort
@@ -89,7 +91,8 @@ class SysvolParser:
             self.logger.warning("Found multiple WSUS Policies, please specify the WSUS Server manually with --WSUS-Server and --WSUS-Port.")
             for policy in possible_wsus_locations:
                 self.logger.warning(f"Found WSUS Server Policy '{policy['name']}', target URL: {policy['scheme']}://{policy['host']}:{policy['port']}")
-            sys.exit(1)
+
+        return None, None
 
     def findWsusServer(self, domain, username, password, dcIp, kerberos, dcName) -> tuple[str, int]:
         """
