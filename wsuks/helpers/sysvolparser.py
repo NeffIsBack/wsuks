@@ -24,16 +24,19 @@ class SysvolParser:
         self.dcIp = ""
         self.domain = ""
 
-    def _createSMBConnection(self, domain, username, password, dcIp, kerberos=False, lmhash="", nthash="", aesKey=""):
+    def _createSMBConnection(self, domain, username, password, dcIp, kerberos=False, dcName="", lmhash="", nthash="", aesKey=""):
         """Create a SMB connection to the target"""
         # SMB Login would be ready for kerberos or NTLM Hashes Authentication if it is needed
         # TODO: Fix remoteName in SMBConnection if this is a bug
         # TODO: Add Kerberos Authentication
         try:
-            self.conn = SMBConnection(remoteName=dcIp, remoteHost=dcIp, sess_port=445)
+            if kerberos:
+                self.conn = SMBConnection(remoteName=dcName, remoteHost=dcIp, sess_port=445)
+            else:
+                self.conn = SMBConnection(remoteName=dcIp, remoteHost=dcIp, sess_port=445)
 
             if kerberos is True:
-                self.conn.kerberosLogin(username, password, domain, lmhash, nthash, aesKey, dcIp)
+                self.conn.kerberosLogin(username, password, domain, lmhash, nthash, aesKey, dcIp, useCache=False)
             else:
                 self.conn.login(username, password, domain, lmhash, nthash)
             if self.conn.isGuestSession() > 0:
@@ -88,7 +91,7 @@ class SysvolParser:
                 self.logger.warning(f"Found WSUS Server Policy '{policy['name']}', target URL: {policy['scheme']}://{policy['host']}:{policy['port']}")
             sys.exit(1)
 
-    def findWsusServer(self, domain, username, password, dcIp) -> tuple[str, int]:
+    def findWsusServer(self, domain, username, password, dcIp, kerberos, dcName) -> tuple[str, int]:
         """
         Get the WSUS server IP address from GPOs of the SYSVOL share
 
@@ -108,7 +111,7 @@ class SysvolParser:
         self.domain = domain
 
         try:
-            self._createSMBConnection(domain, username, password, dcIp)
+            self._createSMBConnection(domain, username, password, dcIp, kerberos, dcName)
             host, self.wsusPort = self._extractWsusServerSYSVOL()
             # Check if host is an IP Address, if not resolve it
             try:

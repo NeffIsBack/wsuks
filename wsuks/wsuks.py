@@ -60,13 +60,15 @@ class Wsuks:
         self.domain_password = args.password
         self.domain = args.domain
         self.dcIp = args.dcIp
+        self.kerberos = args.kerberos
+        self.dcName = args.dcName
 
     def run(self):
         # Get the WSUS server IP and Port from the sysvol share
         sysvolparser = SysvolParser()
         if not self.wsusIp:
             self.logger.info("WSUS Server not specified, trying to find it in SYSVOL share on DC")
-            self.wsusIp, self.wsusPort = sysvolparser.findWsusServer(self.domain, self.domain_username, self.domain_password, self.dcIp)
+            self.wsusIp, self.wsusPort = sysvolparser.findWsusServer(self.domain, self.domain_username, self.domain_password, self.dcIp, self.kerberos, self.dcName)
         else:
             self.logger.info(f"WSUS Server specified manually: {self.wsusIp}:{self.wsusPort}")
 
