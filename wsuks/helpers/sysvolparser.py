@@ -66,7 +66,7 @@ class SysvolParser:
                     if pol["key"] == "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate" and pol["value"] == "WUServer":
                         try:
                             scheme, host, wsusPort = re.search(r"^(https?)://(.+):(\d+)$", pol["data"]).groups()
-                            possible_wsus_locations.append({"name":policy.get_shortname(), "scheme": scheme, "host": host, "port": int(wsusPort)})
+                            possible_wsus_locations.append({"name": policy.get_shortname(), "scheme": scheme, "host": host, "port": int(wsusPort)})
                         except Exception as e:
                             self.logger.error(f"Could not parse WSUS Policy (error: {e}): {pol}")
             except SessionError as e:
