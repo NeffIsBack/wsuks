@@ -1,5 +1,6 @@
 from ipaddress import ip_address, IPv4Network
 import logging
+from pathlib import Path
 import sys
 import time
 import traceback
@@ -106,20 +107,17 @@ class ArpSpoofer:
     def enable_ip_forwarding(self):
         """Enable IP forwarding if the the spoofed IP address is not in the same subnet as the host."""
         # Read ip_fowarding setting and enable it if necessary
-        with open("/proc/sys/net/ipv4/ip_forward") as f:
-            self.ip_forwarding = f.read().strip()
+        self.ip_forwarding = Path("/proc/sys/net/ipv4/ip_forward").read_text().strip()
 
         if self.ip_forwarding == "0":
             self.logger.warning("IP fowarding not enabled, enabling now")
-            with open("/proc/sys/net/ipv4/ip_forward", "w") as f:
-                f.write("1")
+            Path("/proc/sys/net/ipv4/ip_forward").write_text("1")
 
     def disable_ip_forwarding(self):
         """Disable IP forwarding if it was enabled before."""
         if self.ip_forwarding == "0":
             self.logger.warning("Restoring: Disabling IP fowarding")
-            with open("/proc/sys/net/ipv4/ip_forward", "w") as f:
-                f.write("0")
+            Path("/proc/sys/net/ipv4/ip_forward").write_text("0")
 
     def start(self, targetIp, spoofIp):
         """
