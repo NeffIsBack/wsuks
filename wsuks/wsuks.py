@@ -22,7 +22,11 @@ class Wsuks:
 
         self.logger = logging.getLogger("wsuks")
         self.interface = args.interface
-        self.hostIp = get_if_addr(self.interface)
+        try:
+            self.hostIp = get_if_addr(self.interface)
+        except ValueError:
+            self.logger.error(f"Interface '{args.interface}' not found! Exiting...")
+            exit(1)
         self.local_username = "user" + "".join(random.choice(digits) for i in range(5))
         self.local_password = "".join(random.sample(ascii_letters, 16))
 
