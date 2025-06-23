@@ -24,16 +24,19 @@ class SysvolParser:
         self.dcIp = ""
         self.domain = ""
 
-    def _createSMBConnection(self, domain, username, password, dcIp, kerberos=False, lmhash="", nthash="", aesKey=""):
+    def _createSMBConnection(self, domain, username, password, dcIp, kerberos=False, dcName="", lmhash="", nthash="", aesKey=""):
         """Create a SMB connection to the target"""
         # SMB Login would be ready for kerberos or NTLM Hashes Authentication if it is needed
         # TODO: Fix remoteName in SMBConnection if this is a bug
         # TODO: Add Kerberos Authentication
         try:
-            self.conn = SMBConnection(remoteName=dcIp, remoteHost=dcIp, sess_port=445)
+            if kerberos:
+                self.conn = SMBConnection(remoteName=dcName, remoteHost=dcIp, sess_port=445)
+            else:
+                self.conn = SMBConnection(remoteName=dcIp, remoteHost=dcIp, sess_port=445)
 
             if kerberos is True:
-                self.conn.kerberosLogin(username, password, domain, lmhash, nthash, aesKey, dcIp)
+                self.conn.kerberosLogin(username, password, domain, lmhash, nthash, aesKey, dcIp, useCache=False)
             else:
                 self.conn.login(username, password, domain, lmhash, nthash)
             if self.conn.isGuestSession() > 0:
@@ -53,6 +56,8 @@ class SysvolParser:
         def output_callback(data):
             self.reg_data += data
 
+        possible_wsus_locations = []
+
         policies = self.conn.listPath("SYSVOL", f"{self.domain}/Policies/*")
         for policy in policies:
             try:
@@ -62,26 +67,36 @@ class SysvolParser:
                 for pol in reg_pol:
                     if pol["key"] == "Software\\Policies\\Microsoft\\Windows\\WindowsUpdate" and pol["value"] == "WUServer":
                         try:
-                            scheme, hostname, wsusPort = re.search(r"^(https?)://(.+):(\d+)$", pol["data"]).groups()
-                            if scheme == "http":
-                                self.logger.success(f"Found vulnerable WSUS Server using HTTP: {scheme}://{hostname}:{wsusPort}")
-                                return hostname, wsusPort
-                            elif scheme == "https":
-                                self.logger.critical(f"Found WSUS Server using HTTPS: {scheme}://{hostname}:{wsusPort}")
-                                self.logger.critical("This is not vulnerable to WSUS Attack. Exiting...")
-                                sys.exit(1)
+                            scheme, host, wsusPort = re.search(r"^(https?)://(.+):(\d+)$", pol["data"]).groups()
+                            possible_wsus_locations.append({"name": policy.get_shortname(), "scheme": scheme, "host": host, "port": int(wsusPort)})
                         except Exception as e:
-                            self.logger.error(f"Found WSUS Policy, but could not parse value: {e}")
-                            self.logger.error(f"Policy: {pol}")
+                            self.logger.error(f"Could not parse WSUS Policy (error: {e}): {pol}")
             except SessionError as e:
                 self.logger.debug(f"Error: {e}")
             except Exception as e:
                 self.logger.error(f"Error: {e}")
                 if self.logger.level == logging.DEBUG:
                     traceback.print_exc()
+
+        # Check if we found any WSUS Policies
+        if not possible_wsus_locations:
+            self.logger.error("Error: No WSUS policies found in SYSVOL Share.")
+        elif len(possible_wsus_locations) == 1:
+            if scheme == "http":
+                self.logger.success(f"Found vulnerable WSUS Server using HTTP: {scheme}://{host}:{wsusPort}")
+                return host, wsusPort
+            elif scheme == "https":
+                self.logger.critical(f"Found WSUS Server using HTTPS: {scheme}://{host}:{wsusPort}")
+                self.logger.critical("Not vulnerable to WSUS Attack. Exiting...")
+                sys.exit(1)
+        elif len(possible_wsus_locations) > 1:
+            self.logger.warning("Found multiple WSUS Policies, please specify the WSUS Server manually with --WSUS-Server and --WSUS-Port.")
+            for policy in possible_wsus_locations:
+                self.logger.warning(f"Found WSUS Server Policy '{policy['name']}', target URL: {policy['scheme']}://{policy['host']}:{policy['port']}")
+
         return None, None
 
-    def findWsusServer(self, domain, username, password, dcIp) -> tuple[str, int]:
+    def findWsusServer(self, domain, username, password, dcIp, kerberos, dcName) -> tuple[str, int]:
         """
         Get the WSUS server IP address from GPOs of the SYSVOL share
 
@@ -101,20 +116,21 @@ class SysvolParser:
         self.domain = domain
 
         try:
-            if self._createSMBConnection(domain, username, password, dcIp):
-                hostname, self.wsusPort = self._extractWsusServerSYSVOL()
-                # Check if hostname is an IP Address, if not resolve it
-                try:
-                    self.wsusIp = str(ip_address(hostname))
-                except ValueError:
-                    self.logger.debug(f"Hostname '{hostname}' is not an IP Address, trying to resolve hostname.")
+            if self._createSMBConnection(domain, username, password, dcIp, kerberos, dcName):
+                host, self.wsusPort = self._extractWsusServerSYSVOL()
+    
+                # Check if host is an IP Address, if not resolve it
+                if host and self.wsusPort:
                     try:
-                        self.wsusIp = socket.gethostbyname(hostname)
-                    except socket.gaierror:
-                        self.logger.error(f"Error: Could not resolve hostname '{hostname}'.")
+                        self.wsusIp = str(ip_address(host))
+                    except ValueError:
+                        self.logger.debug(f"Host '{host}' is not an IP Address, trying to resolve host.")
+                        try:
+                            self.wsusIp = socket.gethostbyname(host)
+                        except socket.gaierror:
+                            self.logger.error(f"Error: Could not resolve host '{host}'.")
         except Exception as e:
-            self.logger.error(f"Error: {e}")
-            self.logger.error("Error while looking for WSUS Server in SYSVOL Share.")
+            self.logger.error(f"Error while looking for WSUS Server in SYSVOL Share: {e}")
             if self.logger.level == logging.DEBUG:
                 traceback.print_exc()
         finally:

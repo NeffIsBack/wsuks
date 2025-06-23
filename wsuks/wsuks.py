@@ -22,7 +22,11 @@ class Wsuks:
 
         self.logger = logging.getLogger("wsuks")
         self.interface = args.interface
-        self.hostIp = get_if_addr(self.interface)
+        try:
+            self.hostIp = get_if_addr(self.interface)
+        except ValueError:
+            self.logger.error(f"Interface '{args.interface}' not found! Exiting...")
+            exit(1)
         self.local_username = "user" + "".join(random.choice(digits) for i in range(5))
         self.local_password = "".join(random.sample(ascii_letters, 16))
 
@@ -60,19 +64,20 @@ class Wsuks:
         self.domain_password = args.password
         self.domain = args.domain
         self.dcIp = args.dcIp
+        self.kerberos = args.kerberos
+        self.dcName = args.dcName
 
     def run(self):
         # Get the WSUS server IP and Port from the sysvol share
         sysvolparser = SysvolParser()
         if not self.wsusIp:
             self.logger.info("WSUS Server not specified, trying to find it in SYSVOL share on DC")
-            self.wsusIp, self.wsusPort = sysvolparser.findWsusServer(self.domain, self.domain_username, self.domain_password, self.dcIp)
+            self.wsusIp, self.wsusPort = sysvolparser.findWsusServer(self.domain, self.domain_username, self.domain_password, self.dcIp, self.kerberos, self.dcName)
         else:
             self.logger.info(f"WSUS Server specified manually: {self.wsusIp}:{self.wsusPort}")
 
         if self.args.only_discover:
-            self.logger.info(f"WSUS Server found: {self.wsusIp}:{self.wsusPort}")
-            self.logger.info("Exiting...")
+            self.logger.info("Discovered WSUS Server, Exiting...")
             return
 
         self.logger.info("===== Setup done, starting services =====")

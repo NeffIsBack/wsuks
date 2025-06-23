@@ -55,10 +55,10 @@ There are 3 different modes/attack scenarios in which wsuks can be run, which ar
 If the WSUS server is already known, you can simply specify the target IP and the WSUS server IP.\
 The default executable is PsExec64.exe, which runs a predefined PowerShell script with the following actions:
 1. Create a new user of the format user[0-9]{5} (e.g. user12345) and a random password
-2. Set the LocalAccountTokenFilterPolicy to 1 (disabling UAC)
+2. Set the LocalAccountTokenFilterPolicy to 1 (disabling UAC ⚠)
 3. Add the created user to the local admin group
 
-Before setting the LocalAccountTokenFilterPolicy to 1, the original value is stored in the user description field so that it can be restored later.
+⚠ Before setting the LocalAccountTokenFilterPolicy to 1, the original value is stored in the user description field so that it can be restored later
 
 ```shell
 sudo wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20
