@@ -118,7 +118,7 @@ class SysvolParser:
         try:
             if self._createSMBConnection(domain, username, password, dcIp, kerberos, dcName):
                 host, self.wsusPort = self._extractWsusServerSYSVOL()
-    
+
                 # Check if host is an IP Address, if not resolve it
                 if host and self.wsusPort:
                     try:
