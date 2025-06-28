@@ -1,6 +1,7 @@
 import re
 import struct
 from registrypol.values import RegistryValue
+import logging
 
 
 REG_NONE = 0
@@ -36,6 +37,7 @@ class RegistryPolicy:
         self.parsed_regpol = []
         self.policies = []
         self.parse_policy()
+        self.logger = logging.getLogger("wsuks")
 
         for policy in self.parsed_regpol:
             # Parsing the data based on the type
@@ -78,4 +80,7 @@ class RegistryPolicy:
     def parse_policy(self):
         values = re.findall(rb"\x5b\x00.*?\x5d\x00", self.data)
         for value in values:
-            self.parsed_regpol.append(RegistryValue.from_bytes(value))
+            try:
+                self.parsed_regpol.append(RegistryValue.from_bytes(value))
+            except ValueError as e:
+                self.logger.error(f"Error parsing registry value: {e}. Skipping value: {value}")
