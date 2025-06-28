@@ -43,10 +43,12 @@ class SysvolParser:
                 self.logger.debug("GUEST Session Granted")
             else:
                 self.logger.debug("USER Session Granted")
+            return True
         except Exception as e:
             self.logger.error(f"Error: {e}")
             if self.logger.level == logging.DEBUG:
                 traceback.print_exc()
+            return False
 
         return self.conn
 
@@ -114,19 +116,19 @@ class SysvolParser:
         self.domain = domain
 
         try:
-            self._createSMBConnection(domain, username, password, dcIp, kerberos, dcName)
-            host, self.wsusPort = self._extractWsusServerSYSVOL()
+            if self._createSMBConnection(domain, username, password, dcIp, kerberos, dcName):
+                host, self.wsusPort = self._extractWsusServerSYSVOL()
 
-            # Check if host is an IP Address, if not resolve it
-            if host and self.wsusPort:
-                try:
-                    self.wsusIp = str(ip_address(host))
-                except ValueError:
-                    self.logger.debug(f"Host '{host}' is not an IP Address, trying to resolve host.")
+                # Check if host is an IP Address, if not resolve it
+                if host and self.wsusPort:
                     try:
-                        self.wsusIp = socket.gethostbyname(host)
-                    except socket.gaierror:
-                        self.logger.error(f"Error: Could not resolve host '{host}'.")
+                        self.wsusIp = str(ip_address(host))
+                    except ValueError:
+                        self.logger.debug(f"Host '{host}' is not an IP Address, trying to resolve host.")
+                        try:
+                            self.wsusIp = socket.gethostbyname(host)
+                        except socket.gaierror:
+                            self.logger.error(f"Error: Could not resolve host '{host}'.")
         except Exception as e:
             self.logger.error(f"Error while looking for WSUS Server in SYSVOL Share: {e}")
             if self.logger.level == logging.DEBUG:
