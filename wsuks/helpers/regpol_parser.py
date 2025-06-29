@@ -36,8 +36,10 @@ class RegistryPolicy:
         self.data = policy_data
         self.parsed_regpol = []
         self.policies = []
-        self.parse_policy()
         self.logger = logging.getLogger("wsuks")
+
+        # Start parsing the registry policy data
+        self.parse_policy()
 
         for policy in self.parsed_regpol:
             # Parsing the data based on the type
