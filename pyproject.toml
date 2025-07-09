@@ -1,6 +1,6 @@
 [project]
 name = "wsuks"
-version = "1.0.0"
+version = "1.0.1"
 description = "Automating the MITM attack on WSUS"
 authors = [
     {name = "Alexander Neff",email = "alex99.neff@gmx.de"}
