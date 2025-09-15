@@ -50,7 +50,7 @@ def initParser():
     simple.add_argument("--only-discover", action="store_true", help="Only discover the WSUS Server and exit")
 
     advanced = parser.add_argument_group("MANUAL MODE", "If you know the WSUS Server, you can use this mode to skip the automatic discovery.")
-    advanced.add_argument("--WSUS-Server", metavar="", dest="wsusIp", help="IP Address of the WSUS Server.")
+    advanced.add_argument("--WSUS-Server", metavar="", dest="wsusHost", help="IP or DNS name of the WSUS Server.")
     advanced.add_argument("--WSUS-Port", metavar="", dest="wsusPort", type=int, default=8530, help="Port of the WSUS Server. (DEFAULT: %(default)s)")
 
     return parser.parse_args()

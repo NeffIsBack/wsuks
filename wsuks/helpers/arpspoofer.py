@@ -89,6 +89,8 @@ class ArpSpoofer:
         interface_ip = get_if_addr(self.interface)
         self.subnet = IPv4Network(interface_ip + "/" + net_mask, False)
 
+        self.logger.debug(f"Interface {self.interface} has IP address {interface_ip} and netmask {net_mask}, subnet: {self.subnet}")
+
         if ip_address(targetIp) not in self.subnet:
             self.logger.critical(f"Target IP address {targetIp} is not in the same subnet as the host! Forgot -I? Exiting...")
             sys.exit(1)

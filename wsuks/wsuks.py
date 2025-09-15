@@ -14,13 +14,16 @@ from wsuks.helpers.sysvolparser import SysvolParser
 from wsuks.helpers.wsusserver import WSUSUpdateHandler, WSUSBaseServer
 from wsuks.helpers.router import Router
 from termcolor import colored
+import ssl
+from ipaddress import ip_address
+import socket
 
 
 class Wsuks:
     def __init__(self, args):
         self.args = args
-
         self.logger = logging.getLogger("wsuks")
+
         self.interface = args.interface
         try:
             self.hostIp = get_if_addr(self.interface)
@@ -35,6 +38,27 @@ class Wsuks:
         self.executable_file = args.executable.read()
         self.executable_name = os.path.basename(args.executable.name)
         args.executable.close()
+
+        # Check if supplied WSUS Server is an IP or DNS name and resolve it
+        self.wsusHost = args.wsusHost
+        try:
+            self.wsusIp = str(ip_address(self.wsusHost))
+        except ValueError:
+            self.logger.debug(f"Host '{self.wsusHost}' is not an IP Address, trying to resolve host.")
+            try:
+                self.wsusIp = socket.gethostbyname(self.wsusHost)
+            except socket.gaierror:
+                self.logger.error(f"Error: Could not resolve host '{self.wsusHost}'. Exiting...")
+                exit(1)
+        self.wsusPort = args.wsusPort  # Default 8530
+
+        # Automatic mode variables
+        self.domain_username = args.username
+        self.domain_password = args.password
+        self.domain = args.domain
+        self.dcIp = args.dcIp
+        self.kerberos = args.kerberos
+        self.dcName = args.dcName
 
         # Set Command
         if "CREATE_USER_COMMAND" not in args.command:
