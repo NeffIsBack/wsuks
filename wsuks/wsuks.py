@@ -41,15 +41,18 @@ class Wsuks:
 
         # Check if supplied WSUS Server is an IP or DNS name and resolve it
         self.wsusHost = args.wsusHost
-        try:
-            self.wsusIp = str(ip_address(self.wsusHost))
-        except ValueError:
-            self.logger.debug(f"Host '{self.wsusHost}' is not an IP Address, trying to resolve host.")
+        if self.wsusHost:
             try:
-                self.wsusIp = socket.gethostbyname(self.wsusHost)
-            except socket.gaierror:
-                self.logger.error(f"Error: Could not resolve host '{self.wsusHost}'. Exiting...")
-                exit(1)
+                self.wsusIp = str(ip_address(self.wsusHost))
+            except ValueError:
+                self.logger.debug(f"Host '{self.wsusHost}' is not an IP Address, trying to resolve host.")
+                try:
+                    self.wsusIp = socket.gethostbyname(self.wsusHost)
+                except socket.gaierror:
+                    self.logger.error(f"Error: Could not resolve host '{self.wsusHost}'. Exiting...")
+                    exit(1)
+        else:
+            self.wsusIp = None
         if args.wsusPort:
             self.wsusPort = args.wsusPort
         elif args.tlsCert:
