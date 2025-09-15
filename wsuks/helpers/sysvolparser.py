@@ -50,8 +50,6 @@ class SysvolParser:
                 traceback.print_exc()
             return False
 
-        return self.conn
-
     def _extractWsusServerSYSVOL(self):
         def output_callback(data):
             self.reg_data += data
