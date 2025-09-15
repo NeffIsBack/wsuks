@@ -82,15 +82,6 @@ class Wsuks:
                 self.command = str(args.command).format(CREATE_USER_COMMAND=create_user, WSUKS_USER=self.local_username)
         self.logger.success(f"Command to execute: \n{highlight(self.executable_name, 'yellow')} {highlight(self.command, 'yellow')}")
 
-        self.wsusIp = args.wsusIp
-        self.wsusPort = args.wsusPort  # Default 8530
-        self.domain_username = args.username
-        self.domain_password = args.password
-        self.domain = args.domain
-        self.dcIp = args.dcIp
-        self.kerberos = args.kerberos
-        self.dcName = args.dcName
-
     def run(self):
         # Get the WSUS server IP and Port from the sysvol share
         sysvolparser = SysvolParser()
