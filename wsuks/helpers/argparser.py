@@ -51,7 +51,7 @@ def initParser():
 
     advanced = parser.add_argument_group("MANUAL MODE", "If you know the WSUS Server, you can use this mode to skip the automatic discovery.")
     advanced.add_argument("--WSUS-Server", metavar="", dest="wsusHost", help="IP or DNS name of the WSUS Server.")
-    advanced.add_argument("--WSUS-Port", metavar="", dest="wsusPort", type=int, default=8530, help="Port of the WSUS Server. (DEFAULT: %(default)s)")
+    advanced.add_argument("--WSUS-Port", metavar="", dest="wsusPort", type=int, help="Port of the WSUS Server. (DEFAULT: 8530 for HTTP, 8531 for HTTPS)")
     advanced.add_argument("--tls-cert", metavar="", dest="tlsCert", help="Path to a TLS certificate that is valid for the WSUS Server. Turns on HTTPS mode.")
 
     return parser.parse_args()

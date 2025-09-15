@@ -50,7 +50,12 @@ class Wsuks:
             except socket.gaierror:
                 self.logger.error(f"Error: Could not resolve host '{self.wsusHost}'. Exiting...")
                 exit(1)
-        self.wsusPort = args.wsusPort  # Default 8530
+        if args.wsusPort:
+            self.wsusPort = args.wsusPort
+        elif args.tlsCert:
+            self.wsusPort = 8531  # Default port for HTTPS WSUS Server
+        else:
+            self.wsusPort = 8530  # Default port for HTTP WSUS Server
 
         # Automatic mode variables
         self.domain_username = args.username
