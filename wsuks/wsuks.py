@@ -105,13 +105,28 @@ class Wsuks:
         router.start()
 
         # Prepare WSUS HTTP Server
-        update_handler = WSUSUpdateHandler(self.executable_file, self.executable_name, f"{self.hostIp}:{self.wsusPort}")
+        # If we have a TLS cert we have to switch to HTTPS and supply the DNS name
+        if self.args.tlsCert:  # noqa: SIM108
+            update_handler = WSUSUpdateHandler(self.executable_file, self.executable_name, f"https://{self.wsusHost}:{self.wsusPort}")
+        else:
+            update_handler = WSUSUpdateHandler(self.executable_file, self.executable_name, f"http://{self.hostIp}:{self.wsusPort}")
         update_handler.set_resources_xml(self.command)
-
         self.logger.debug(update_handler)
 
         http_handler = partial(WSUSBaseServer, update_handler)
         http_server = HTTPServer((self.hostIp, self.wsusPort), http_handler)
+
+        # Add certificates for HTTPS
+        if self.args.tlsCert:
+            if not os.path.isfile(self.args.tlsCert):
+                self.logger.error(f"TLS certificate file '{self.args.tlsCert}' not found! Exiting...")
+                exit(1)
+            self.logger.info(f"Using TLS certificate '{self.args.tlsCert}' for HTTPS WSUS Server")
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            context.load_cert_chain(certfile=self.args.tlsCert)
+            context.check_hostname = False
+            http_server.socket = context.wrap_socket(http_server.socket, server_side=True)
+
         try:
             self.logger.info(f"Starting WSUS Server on {self.hostIp}:{self.wsusPort}...")
             http_server.serve_forever()

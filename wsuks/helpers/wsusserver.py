@@ -19,7 +19,7 @@ class WSUSUpdateHandler:
     Mostly inspired by https://github.com/GoSecure/pywsus
     """
 
-    def __init__(self, executable_file, executable_name, client_address):
+    def __init__(self, executable_file, executable_name, client_location):
         self.logger = logging.getLogger("wsuks")
 
         self.get_config_xml = ""
@@ -41,7 +41,7 @@ class WSUSUpdateHandler:
         self.sha1 = ""
         self.sha256 = ""
 
-        self.client_address = client_address
+        self.client_location = client_location
 
         self.set_filedigest()
 
@@ -93,7 +93,7 @@ class WSUSUpdateHandler:
                                                                        filename=self.executable_name,
                                                                        file_size=len(self.executable),
                                                                        command=html.escape(html.escape(self.command)),
-                                                                       url=f"http://{self.client_address}/{uuid.uuid4()}/{self.executable_name}")
+                                                                       url=f"{self.client_location}/{uuid.uuid4()}/{self.executable_name}")
                 file.close()
 
             with open(f"{path}/xml_files/report-event-batch.xml") as file:
