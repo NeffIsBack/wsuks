@@ -137,8 +137,4 @@ class SysvolParser:
             with contextlib.suppress(Exception):
                 self.conn.close()
 
-        if not self.wsusIp or not self.wsusPort:
-            self.logger.error("Error: WSUS-Server-IP not set. Try to specify the WSUS Server manually with --WSUS-Server and --WSUS-Port. Exiting...")
-            sys.exit(1)
-
-        return self.wsusIp, int(self.wsusPort)
+        return self.wsusIp, self.wsusPort

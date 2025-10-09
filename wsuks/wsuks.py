@@ -5,6 +5,7 @@ import os
 from pprint import pformat
 import random
 from string import digits, ascii_letters
+import sys
 from scapy.all import get_if_addr
 import wsuks
 from wsuks.helpers.arpspoofer import ArpSpoofer
@@ -102,6 +103,13 @@ class Wsuks:
         if self.args.only_discover:
             self.logger.info("Discovered WSUS Server, Exiting...")
             return
+
+        # Should only happen when crawling SYSVOL share
+        if not self.wsusIp or not self.wsusPort:
+            self.logger.error("Error: WSUS-Server-IP not set. Try to specify the WSUS Server manually with --WSUS-Server and --WSUS-Port. Exiting...")
+            sys.exit(1)
+        else:
+            self.wsusPort = int(self.wsusPort)
 
         self.logger.info("===== Setup done, starting services =====")
         # Start Arp Spoofing
