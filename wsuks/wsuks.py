@@ -34,7 +34,6 @@ class Wsuks:
         self.local_username = "user" + "".join(random.choice(digits) for i in range(5))
         self.local_password = "".join(random.sample(ascii_letters, 14)) + "1" + "!"
 
-
         # Set args
         self.targetIp = args.targetIp  # Never None (required)
         self.executable_file = args.executable.read()
