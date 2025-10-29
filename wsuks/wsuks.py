@@ -147,7 +147,7 @@ class Wsuks:
 
         try:
             self.logger.info(f"Starting WSUS Server on {self.hostIp}:{self.wsusPort}...")
-            self.logger.info(f"Serving KB: {update_handler.kb_number}")
+            self.logger.info(f"Serving executable as KB: {update_handler.kb_number}")
             http_server.serve_forever()
         except KeyboardInterrupt:
             print()
