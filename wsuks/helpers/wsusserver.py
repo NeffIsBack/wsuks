@@ -95,7 +95,6 @@ class WSUSUpdateHandler:
                                                                        command=html.escape(html.escape(self.command)),
                                                                        url=f"{self.client_location}/{uuid.uuid4()}/{self.executable_name}")
                 file.close()
-                print(f"Serving KB: {self.kb_number}")
 
             with open(f"{path}/xml_files/report-event-batch.xml") as file:
                 self.report_event_batch_xml = file.read()
