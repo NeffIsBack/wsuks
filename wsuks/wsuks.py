@@ -32,7 +32,7 @@ class Wsuks:
             self.logger.error(f"Interface '{args.interface}' not found! Exiting...")
             exit(1)
         self.local_username = "user" + "".join(random.choice(digits) for i in range(5))
-        self.local_password = "".join(random.sample(ascii_letters, 14)) + "1" + "!"
+        self.local_password = "".join(random.sample(ascii_letters, 12)) + "1!"
 
         # Set args
         self.targetIp = args.targetIp  # Never None (required)
