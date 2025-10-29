@@ -29,31 +29,32 @@ wsuks = "wsuks.wsuks:main"
 packages = [{ include = "wsuks" }]
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.11.0"
+ruff = "*"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
+target-version = "py39"
 exclude = [
     ".bzr", ".direnv", ".eggs", ".git", ".git-rewrite", ".hg", ".mypy_cache",
     ".nox", ".pants.d", ".pytype", ".ruff_cache", ".svn", ".tox", ".venv",
     "__pypackages__", "_build", "buck-out", "build", "dist", "node_modules", "venv"
 ]
 line-length = 65000
-target-version = "py38"
+preview = true
 
 [tool.ruff.lint]
 select = [
     "E", "F", "D", "UP", "YTT", "ASYNC", "B", "A", "C4", "ISC", "ICN", "PIE", "PT",
-    "Q", "RSE", "RET", "SIM", "TID", "ERA", "FLY", "PERF", "FURB", "LOG", "RUF"
+    "Q", "RSE", "RET", "SIM", "TID", "ERA", "FLY", "PERF", "LOG", "RUF", "W"
 ]
 ignore = [
-    "E501", "F405", "D100", "D101", "D102", "D103", "D104", "D105", "D106",
-    "D107", "D203", "D204", "D205", "D212", "D213", "D400", "D401", "D415",
-    "D417", "D419", "RET503", "RET505", "RET506", "RET507", "RET508",
-    "PERF203", "RUF012"
+    "A004", "E501", "F405", "D100", "D101", "D102", "D103", "D104", "D105", "D106",
+    "D107", "D203", "D204", "D205", "D212", "D213", "D400", "D401", "D413", "D415",
+    "D417", "D419", "FURB", "RET503", "RET505", "RET506", "RET507", "RET508",
+    "PERF203", "RUF012", "RUF052", "RUF059"
 ]
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.
