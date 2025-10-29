@@ -32,7 +32,7 @@ class Wsuks:
             self.logger.error(f"Interface '{args.interface}' not found! Exiting...")
             exit(1)
         self.local_username = "user" + "".join(random.choice(digits) for i in range(5))
-        self.local_password = "".join(random.sample(ascii_letters, 16))
+        self.local_password = "".join(random.sample(ascii_letters, 14)) + "1" + "!"
 
         # Set args
         self.targetIp = args.targetIp  # Never None (required)
@@ -146,6 +146,7 @@ class Wsuks:
 
         try:
             self.logger.info(f"Starting WSUS Server on {self.hostIp}:{self.wsusPort}...")
+            self.logger.info(f"Serving executable as KB: {update_handler.kb_number}")
             http_server.serve_forever()
         except KeyboardInterrupt:
             print()
