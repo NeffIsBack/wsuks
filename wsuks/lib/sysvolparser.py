@@ -7,7 +7,7 @@ import traceback
 import contextlib
 from impacket.smbconnection import SMBConnection, SessionError
 from ipaddress import ip_address
-from wsuks.helpers.regpol_parser import RegistryPolicy
+from wsuks.lib.regpol_parser import RegistryPolicy
 
 
 class SysvolParser:

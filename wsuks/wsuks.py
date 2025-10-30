@@ -8,12 +8,12 @@ from string import digits, ascii_letters
 import sys
 from scapy.all import get_if_addr
 import wsuks
-from wsuks.helpers.arpspoofer import ArpSpoofer
-from wsuks.helpers.logger import initLogger
-from wsuks.helpers.argparser import initParser, printBanner
-from wsuks.helpers.sysvolparser import SysvolParser
-from wsuks.helpers.wsusserver import WSUSUpdateHandler, WSUSBaseServer
-from wsuks.helpers.router import Router
+from wsuks.lib.arpspoofer import ArpSpoofer
+from wsuks.lib.logger import initLogger
+from wsuks.lib.argparser import initParser, printBanner
+from wsuks.lib.sysvolparser import SysvolParser
+from wsuks.lib.wsusserver import WSUSUpdateHandler, WSUSBaseServer
+from wsuks.lib.router import Router
 from termcolor import colored
 import ssl
 from ipaddress import ip_address
