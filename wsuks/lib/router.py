@@ -31,7 +31,7 @@ class Router:
         nft 'add rule ip wsuks wsuks-nat ip saddr <TARGET-IP> tcp dport <WSUKS-PORT> dnat ip to <HOST-IP>'
         """
         self.isRunning = True
-        self.logger.info(f"Configure nftables for NATing incoming packages from {self.targetIp} with source {self.wsusIp}:{self.wsusPort} to {self.hostIp}")
+        self.logger.info(f"Configure nftables for NATing incoming packages from {self.targetIp} with destination {self.wsusIp}:{self.wsusPort} to {self.hostIp}")
 
         self.nft.cmd("add table ip wsuks")
         self.nft.cmd("add chain ip wsuks wsuks-nat { type nat hook prerouting priority dstnat; policy accept; }")
