@@ -3,7 +3,7 @@
 # wsuks
 _Automating the WSUS Attack_
 
-Gaining local administrative access to a Windows machine that is part of a domain is typically the first step in gaining domain admin privileges during a penetration test. In many cases, the Windows Server Update Service (WSUS) is configured to deploy updates to clients over the local network using HTTP. Without the security of HTTPS, an attacker can mount a machine-in-the-middle attack to serve an update to the client, which will then execute with SYSTEM privileges. Any Microsoft signed executable can be served as an update, including a custom command with which the executable is executed.
+Gaining local administrative access to a Windows machine that is part of a domain is typically the first step in gaining domain admin privileges during a penetration test. In many cases, the Windows Server Update Service (WSUS) is configured to deploy updates to clients over the local network using HTTP. Without the security of HTTPS, an attacker can mount a machine-in-the-middle attack to serve an update to the client, which will then execute with SYSTEM privileges. Any Microsoft signed executable can be served as an update, including a custom command with which the executable is executed. Should an attack be able to obtain a TLS-certificate for the WSUS server, the attack can be performed over HTTPS as well (see [ESC17](https://github.com/NeffIsBack/esc17-wiki/blob/master/06-%E2%80%90-Privilege-Escalation.md#esc17-enrollee-supplied-subject-for-server-authentication) and our [blog post](https://blog.digitrace.de/2026/01/using-adcs-to-attack-https-enabled-wsus-clients/)).
 
 To automatically exploit the WSUS attack, this tool spoofs the IP address of the WSUS server on the network using ARP, and when the client requests Windows updates, it serves PsExec64.exe with a predefined PowerShell script to gain local admin privileges. Both the executable file that is served (default: PsExec64.exe) and the command that is executed can be changed if required.\
 By default, a Windows client will check for updates approximately every 24 hours.
@@ -11,15 +11,15 @@ By default, a Windows client will check for updates approximately every 24 hours
 
 Prerequisits:
 - The target client must be on the local network
-- The Windows Server Update Service (WSUS) must be configured using HTTP
+- The Windows Server Update Service (WSUS) must be configured using HTTP or [ESC17](https://github.com/NeffIsBack/esc17-wiki/blob/master/06-%E2%80%90-Privilege-Escalation.md#esc17-enrollee-supplied-subject-for-server-authentication) must be present
 
 Result:
 - After successful execution the user provided will be added to the local admin group. If no user was specified a user with the format user[0-9]{5} (e.g. user12345) and a random password will be created
 
 Implemented features:
  - [x] ARP spoofing the target
- - [x] Routing the ARP spoofed packets to the local HTTP server
- - [x] HTTP server to serve the malicious updates
+ - [x] Routing the ARP spoofed packets to the local HTTP(S) server
+ - [x] HTTP(S) server to serve the malicious updates
  - [x] Automatic detection of the WSUS server
  - [x] Included PowerShell script and executable to gain local admin access
 
@@ -79,6 +79,13 @@ sudo wsuks -t 10.0.0.10 -u User -p Password -d domain.local --dc-ip 10.0.0.1
 
 **Tipp:** If you only want to check for a WSUS server, you can use the `--only-discover` flag.
 
+### Specify a TLS certificate for the WSUS webserver (ESC17):
+
+In the case an attacker is able to obtain a TLS certificate (e.g. through ESC17) for the WSUS server, the attack can be performed over HTTPS as well.
+```shell
+sudo wsuks -t 10.0.0.10 --WSUS-Server secure.wsus.domain.local --tls-cert cert.pem
+```
+
 ## Demo 🎥
 Here is a short demo of the attack with a known WSUS server:
 ![Demo of the WSUS attack](media/wsuks-demo.gif)
@@ -87,6 +94,8 @@ Here is a short demo of the attack with a known WSUS server:
 ## About & Mitigation 🛡️
 In the [PyWSUS](https://github.com/GoSecure/pywsus) repository from GoSecure you can find a great documentation how you could detect and mitigate this attack.
 They also wrote a great Guide demonstrating how this attack works in detail [here](https://www.gosecure.net/blog/2020/09/03/wsus-attacks-part-1-introducing-pywsus/).
+
+Regarding ESC17, please check out the [certipy wiki](https://github.com/NeffIsBack/esc17-wiki/blob/master/06-%E2%80%90-Privilege-Escalation.md#esc17-enrollee-supplied-subject-for-server-authentication) for mitigation recommendations.
 
 Parts of this tool are based on the following projects:
 - https://github.com/GoSecure/pywsus
