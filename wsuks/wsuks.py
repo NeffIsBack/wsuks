@@ -162,9 +162,9 @@ def highlight(text, color):
 
 
 def main():
-    args = initParser()
-    if not args.version:
+    if not (len(sys.argv) == 2 and sys.argv[1] in ["--version", "-v"]):
         printBanner()
+    args = initParser()
 
     logger = initLogger(ts=args.timestamp, debug=args.debug)
     logger.debug("Passed args:\n" + pformat(vars(args)))
