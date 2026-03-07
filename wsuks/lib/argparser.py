@@ -1,11 +1,13 @@
 import argparse
 from argparse import RawTextHelpFormatter
 import importlib.metadata
+
 import wsuks
 from os.path import dirname
 from termcolor import colored
 
-__version__ = importlib.metadata.version("wsuks")
+
+VERSION = importlib.metadata.version("wsuks")
 
 
 def printBanner():
@@ -19,7 +21,7 @@ def printBanner():
 
      Pentesting Tool for the WSUS MITM Attack
                Made by NeffIsBack
-                 {colored('version', 'red', attrs=['bold'])}: {colored(__version__, 'yellow', attrs=['bold'])}
+                 {colored('version', 'red', attrs=['bold'])}: {colored(VERSION, 'yellow', attrs=['bold'])}
 """)
 
 
@@ -31,7 +33,7 @@ def initParser():
     """
     parser = argparse.ArgumentParser(prog="wsuks", epilog=example_text, formatter_class=RawTextHelpFormatter)
 
-    parser.add_argument("-v", "--version", action="version", version="Current Version: %(prog)s 2.0")
+    parser.add_argument("-v", "--version", action="version", version=f"Current Version: wsuks {VERSION}")
     parser.add_argument("--debug", action="store_true", help="Enable debug output")
     parser.add_argument("-ts", "--timestamp", action="store_true", help="Add timestamp to log messages")
 

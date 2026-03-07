@@ -162,9 +162,9 @@ def highlight(text, color):
 
 
 def main():
-    # Setup
-    printBanner()
     args = initParser()
+    if not args.version:
+        printBanner()
 
     logger = initLogger(ts=args.timestamp, debug=args.debug)
     logger.debug("Passed args:\n" + pformat(vars(args)))
