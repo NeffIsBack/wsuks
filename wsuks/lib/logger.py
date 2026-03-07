@@ -79,4 +79,8 @@ def initLogger(ts=False, debug=False):
     addSuccessLogLevel(logger)
     addSuccessLogLevel(root_logger)
 
+    # Prevent scapy from logging to console
+    logging.getLogger("scapy").disabled = True
+    logging.getLogger("scapy.runtime").disabled = True
+
     return logger

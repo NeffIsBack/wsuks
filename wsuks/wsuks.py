@@ -169,10 +169,6 @@ def main():
     logger = initLogger(ts=args.timestamp, debug=args.debug)
     logger.debug("Passed args:\n" + pformat(vars(args)))
 
-    # Prevent scapy from logging to console
-    logging.getLogger("scapy").disabled = True
-    logging.getLogger("scapy.runtime").disabled = True
-
     if os.geteuid() != 0:
         logger.error("This script must be run as root!")
         exit(1)
