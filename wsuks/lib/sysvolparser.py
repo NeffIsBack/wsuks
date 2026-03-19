@@ -110,6 +110,10 @@ class SysvolParser:
             self.logger.error("Error: Domain Controller IP, Username, Password and Domain are required to search for WSUS Server in SYSVOL Share. Exiting...")
             sys.exit(1)
 
+        if kerberos and not dcName:
+            self.logger.error("Error: Domain Controller Name is required for Kerberos authentication. Exiting...")
+            sys.exit(1)
+
         self.username = username
         self.password = password
         self.dcIp = dcIp
