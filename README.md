@@ -49,10 +49,22 @@ If you are using poetry, you must be in the wsuks folder and start each command 
 
 This tool requires the `nftables` package to be installed, which is the default on all debian based systems.\
 
-There are 3 different modes/attack scenarios in which wsuks can be run, which are described below.
-### Specify known WSUS Server and create local admin user:
-If the WSUS server is already known, you can simply specify the target IP and the WSUS server IP.\
-The default executable is PsExec64.exe, which runs a predefined PowerShell script with the following actions:
+There are 3 different modes/attack scenarios in which wsuks can be run:
+- AUTOMATIC: If the WSUS server is not known, wsuks will automatically discover the WSUS server by parsing the GPOs on the domain controller. In this case, the IP of the domain controller must be provided, as well as credentials for the domain.
+- MANUAL: If the WSUS server is already known, the attack can be performed by simply providing the IP of the WSUS server.
+- SERVE ONLY: If the traffic is already being redirected to the attacker's machine (e.g. with control over DNS), wsuks can be used to only serve the malicious executable and command.
+
+### AUTOMATIC: Autodiscover the WSUS Server by only specifying the domain user with the DC IP:
+If you already have a domain user, wsuks will parse the GPOs on the domain controller to find the WSUS server.\
+A PowerShell script is executed, which will add the provided domain user to the local admin group.
+```shell
+sudo wsuks -t 10.0.0.10 -u User -p Password -d domain.local --dc-ip 10.0.0.1
+```
+
+**Tipp:** If you only want to check for a WSUS server, you can use the `--only-discover` flag.
+
+### MANUAL: Specify known WSUS Server and create local admin user:
+The predefined PowerShell script will execute the following actions:
 1. Create a new user of the format user[0-9]{5} (e.g. user12345) and a random password
 2. Set the LocalAccountTokenFilterPolicy to 1 (disabling UAC ⚠)
 3. Add the created user to the local admin group
@@ -63,24 +75,22 @@ The default executable is PsExec64.exe, which runs a predefined PowerShell scrip
 sudo wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20
 ```
 
-### Specify known WSUS Server and add provided domain user to local admin group (domain is required!):
+### MANUAL: Specify known WSUS Server and add provided domain user to local admin group (domain is required!):
 If you already have a domain user and you know the IP of the WSUS server, wsuks will simply add the user to the local Administrators group.
 ```shell
 sudo wsuks -t 10.0.0.10 --WSUS-Server 10.0.0.20 -u User -d domain.local
 ```
 
-### Autodiscover the WSUS Server by only specifying the domain user with the DC IP:
-If you already have a domain user, wsuks will parse the GPOs on the domain controller to find the WSUS server.\
-A PowerShell script is executed, which will add the provided domain user to the local admin group.
+### SERVE ONLY: Only serve the malicious executable and command:
+If the traffic is already being redirected to the attacker's machine (e.g. with control over DNS), wsuks can be used to only serve the malicious executable and command without performing the ARP spoofing and routing itself.
+This will simply spawn the HTTP server on the provided interface.
 ```shell
-sudo wsuks -t 10.0.0.10 -u User -p Password -d domain.local --dc-ip 10.0.0.1
+sudo wsuks --serve-only
 ```
 
-**Tipp:** If you only want to check for a WSUS server, you can use the `--only-discover` flag.
-
-### Specify a TLS certificate for the WSUS webserver (ESC17):
-
+### ESC17: Specify a TLS certificate for the WSUS webserver (ESC17):
 In the case an attacker is able to obtain a TLS certificate (e.g. through ESC17) for the WSUS server, the attack can be performed over HTTPS as well.
+Applies to all of the scenarios above, just add the `--tls-cert` flag with the path to the certificate.
 ```shell
 sudo wsuks -t 10.0.0.10 --WSUS-Server secure.wsus.domain.local --tls-cert cert.pem
 ```
