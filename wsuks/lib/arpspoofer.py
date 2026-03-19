@@ -150,4 +150,4 @@ class ArpSpoofer:
             # Restore IP forwarding if it was enabled before
             self.disable_ip_forwarding()
         else:
-            self.logger.error("ARP spoofing is not running")
+            self.logger.error("Failed to stop ARP spoofing: ARP spoofing is not running")

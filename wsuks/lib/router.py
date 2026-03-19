@@ -50,4 +50,4 @@ class Router:
             self.nft.cmd("delete table ip wsuks")
             self.isRunning = False
         else:
-            self.logger.error("Router is not running")
+            self.logger.error("Failed to stop Router: Router is not running")
