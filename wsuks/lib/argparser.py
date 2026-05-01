@@ -47,6 +47,7 @@ def initParser():
     advanced.add_argument("--WSUS-Server", metavar="", dest="wsusHost", help="IP or DNS name of the WSUS Server.")
     advanced.add_argument("--WSUS-Port", metavar="", dest="wsusPort", type=int, help="Port of the WSUS Server. (DEFAULT: 8530 for HTTP, 8531 for HTTPS)")
     advanced.add_argument("--tls-cert", metavar="", dest="tlsCert", help="Path to a TLS certificate that is valid for the WSUS Server. Turns on HTTPS mode.")
+    advanced.add_argument("--tls-certKey", metavar="", dest="tlsCertKey", help="Path to a TLS certificate private key that is valid for the WSUS Server. Turns on HTTPS mode.")
 
     webserver = mode_parser.add_argument_group("SERVE ONLY MODE", "Only run Webserver. Recommended if you have control over DNS and the traffic comes directly from the victim to your machine.")
     webserver.add_argument("--serve-only", action="store_true", help="Serve the executable and command without any arp spoofing, network magic or WSUS discovery.")
