@@ -140,11 +140,37 @@ class Wsuks:
             if not os.path.isfile(self.args.tlsCert):
                 self.logger.error(f"TLS certificate file '{self.args.tlsCert}' not found! Exiting...")
                 exit(1)
+
+            if self.args.tlsCertKey:
+                if not os.path.isfile(self.args.tlsCertKey):
+                    self.logger.error(f"TLS certificate Key file '{self.args.tlsCertKey}' not found! Exiting...")
+                    exit(1)
+
             self.logger.info(f"Using TLS certificate '{self.args.tlsCert}' for HTTPS WSUS Server")
+            # checking if the cert has the private key baked within the cert
+            # https://docs.python.org/3/library/ssl.html#combined-key-and-certificate
+
+            if not self.args.tlsCertKey:
+                with open(self.args.tlsCert, 'r') as h:
+                    data = h.read()
+                    has_private_key = "-----BEGIN PRIVATE KEY-----" in data or "-----BEGIN RSA PRIVATE KEY-----" in data
+                    has_cert = "-----BEGIN CERTIFICATE-----" in data
+                    if has_cert and has_private_key:
+                        self.logger.warning("Private key BEGIN in the certfile is not secure separate the two and keep the private key safe")
+                    else:
+                        self.logger.error("No private key found. Supply it using --tls-certKey")
+                        # To perform TLS server authentication (decrypt/session key ops, prove ownership) the server needs the corresponding private key. The cert alone cannot do that.
+                        exit(1)
+
+            self.logger.info(f"Using TLS certificate private key '{self.args.tlsCertKey}' for HTTPS WSUS Server")
+        try:
             context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-            context.load_cert_chain(certfile=self.args.tlsCert)
+            context.load_cert_chain(certfile=self.args.tlsCert, keyfile=self.args.tlsCertKey)
             context.check_hostname = False
             http_server.socket = context.wrap_socket(http_server.socket, server_side=True)
+        except ssl.SSLError:
+            self.logger.error("Make sure The cert in a PEM format not a DER")
+            exit(1)
 
         try:
             self.logger.info(f"Starting WSUS Server on {self.hostIp}:{self.wsusPort}...")
