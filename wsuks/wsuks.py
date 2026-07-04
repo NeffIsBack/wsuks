@@ -157,8 +157,8 @@ class Wsuks:
                     if has_cert and has_private_key:
                         self.logger.warning("Private key BEGIN in the certfile is not secure separate the two and keep the private key safe")
                     else:
-                        self.logger.error("No private key found. Supply it using --tls-certKey")
                         # To perform TLS server authentication (decrypt/session key ops, prove ownership) the server needs the corresponding private key. The cert alone cannot do that.
+                        self.logger.error("Certificate with no private key found. Please specify the private key using --tls-cert-key")
                         exit(1)
 
                 self.logger.info(f"Using TLS certificate private key '{self.args.tlsCertKey}' for HTTPS WSUS Server")
@@ -167,8 +167,9 @@ class Wsuks:
                 context.load_cert_chain(certfile=self.args.tlsCert, keyfile=self.args.tlsCertKey)
                 context.check_hostname = False
                 http_server.socket = context.wrap_socket(http_server.socket, server_side=True)
-            except ssl.SSLError:
-                self.logger.error("Make sure The cert in a PEM format not a DER")
+            except ssl.SSLError as e:
+                self.logger.error(f"SSL Error: {e}")
+                self.logger.error("Make sure the TLS certificate is in PEM format. Exiting...")
                 exit(1)
 
         try:
