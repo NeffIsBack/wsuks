@@ -141,10 +141,9 @@ class Wsuks:
                 self.logger.error(f"TLS certificate file '{self.args.tlsCert}' not found! Exiting...")
                 exit(1)
 
-            if self.args.tlsCertKey:
-                if not os.path.isfile(self.args.tlsCertKey):
-                    self.logger.error(f"TLS certificate Key file '{self.args.tlsCertKey}' not found! Exiting...")
-                    exit(1)
+            if self.args.tlsCertKey and not os.path.isfile(self.args.tlsCertKey):
+                self.logger.error(f"TLS certificate Key file '{self.args.tlsCertKey}' not found! Exiting...")
+                exit(1)
 
             self.logger.info(f"Using TLS certificate '{self.args.tlsCert}' for HTTPS WSUS Server")
             # checking if the cert has the private key baked within the cert
