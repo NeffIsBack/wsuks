@@ -138,7 +138,6 @@ class Wsuks:
 
         # Add certificates for HTTPS
         if self.args.tlsCert:
-            self.logger.info(f"Using TLS certificate '{self.args.tlsCert}' for HTTPS WSUS Server")
             if not os.path.isfile(self.args.tlsCert):
                 self.logger.error(f"TLS certificate file '{self.args.tlsCert}' not found! Exiting...")
                 exit(1)
@@ -147,6 +146,7 @@ class Wsuks:
                 self.logger.error(f"TLS certificate Key file '{self.args.tlsCertKey}' not found! Exiting...")
                 exit(1)
 
+            self.logger.info(f"Using TLS certificate '{self.args.tlsCert}' for HTTPS WSUS Server")
 
             # checking if the cert has the private key baked within the cert
             # https://docs.python.org/3/library/ssl.html#combined-key-and-certificate
