@@ -161,15 +161,15 @@ class Wsuks:
                         # To perform TLS server authentication (decrypt/session key ops, prove ownership) the server needs the corresponding private key. The cert alone cannot do that.
                         exit(1)
 
-            self.logger.info(f"Using TLS certificate private key '{self.args.tlsCertKey}' for HTTPS WSUS Server")
-        try:
-            context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-            context.load_cert_chain(certfile=self.args.tlsCert, keyfile=self.args.tlsCertKey)
-            context.check_hostname = False
-            http_server.socket = context.wrap_socket(http_server.socket, server_side=True)
-        except ssl.SSLError:
-            self.logger.error("Make sure The cert in a PEM format not a DER")
-            exit(1)
+                self.logger.info(f"Using TLS certificate private key '{self.args.tlsCertKey}' for HTTPS WSUS Server")
+            try:
+                context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+                context.load_cert_chain(certfile=self.args.tlsCert, keyfile=self.args.tlsCertKey)
+                context.check_hostname = False
+                http_server.socket = context.wrap_socket(http_server.socket, server_side=True)
+            except ssl.SSLError:
+                self.logger.error("Make sure The cert in a PEM format not a DER")
+                exit(1)
 
         try:
             self.logger.info(f"Starting WSUS Server on {self.hostIp}:{self.wsusPort}...")
