@@ -4,6 +4,7 @@ import logging
 import os
 from pprint import pformat
 import random
+import re
 from string import digits, ascii_letters
 import sys
 from scapy.all import get_if_addr
@@ -137,6 +138,7 @@ class Wsuks:
 
         # Add certificates for HTTPS
         if self.args.tlsCert:
+            self.logger.info(f"Using TLS certificate '{self.args.tlsCert}' for HTTPS WSUS Server")
             if not os.path.isfile(self.args.tlsCert):
                 self.logger.error(f"TLS certificate file '{self.args.tlsCert}' not found! Exiting...")
                 exit(1)
@@ -145,23 +147,19 @@ class Wsuks:
                 self.logger.error(f"TLS certificate Key file '{self.args.tlsCertKey}' not found! Exiting...")
                 exit(1)
 
-            self.logger.info(f"Using TLS certificate '{self.args.tlsCert}' for HTTPS WSUS Server")
+
             # checking if the cert has the private key baked within the cert
             # https://docs.python.org/3/library/ssl.html#combined-key-and-certificate
-
             if not self.args.tlsCertKey:
-                with open(self.args.tlsCert, 'r') as h:
-                    data = h.read()
-                    has_private_key = "-----BEGIN PRIVATE KEY-----" in data or "-----BEGIN RSA PRIVATE KEY-----" in data
-                    has_cert = "-----BEGIN CERTIFICATE-----" in data
-                    if has_cert and has_private_key:
-                        self.logger.warning("Private key BEGIN in the certfile is not secure separate the two and keep the private key safe")
-                    else:
-                        # To perform TLS server authentication (decrypt/session key ops, prove ownership) the server needs the corresponding private key. The cert alone cannot do that.
+                with open(self.args.tlsCert) as file:
+                    data = file.read()
+                    # To perform TLS server authentication (decrypt/session key ops, prove ownership) the server needs the corresponding private key. The cert alone cannot do that.
+                    if "-BEGIN CERTIFICATE-" in data and not re.search(r"-BEGIN.*PRIVATE KEY-", data):
                         self.logger.error("Certificate with no private key found. Please specify the private key using --tls-cert-key")
                         exit(1)
-
+            else:
                 self.logger.info(f"Using TLS certificate private key '{self.args.tlsCertKey}' for HTTPS WSUS Server")
+
             try:
                 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
                 context.load_cert_chain(certfile=self.args.tlsCert, keyfile=self.args.tlsCertKey)
