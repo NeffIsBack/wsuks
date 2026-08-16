@@ -19,7 +19,7 @@ class WSUSUpdateHandler:
     Mostly inspired by https://github.com/GoSecure/pywsus
     """
 
-    def __init__(self, executable_file, executable_name, client_location):
+    def __init__(self, executable_file, executable_name, client_location, kb_number=None):
         self.logger = logging.getLogger("wsuks")
 
         self.get_config_xml = ""
@@ -33,7 +33,7 @@ class WSUSUpdateHandler:
         self.revision_ids = [randint(900000, 999999), randint(900000, 999999)]
         self.deployment_ids = [randint(80000, 99999), randint(80000, 99999)]
         self.uuids = [uuid.uuid4(), uuid.uuid4()]
-        self.kb_number = randint(1000000, 9999999)
+        self.kb_number = kb_number if kb_number else randint(1000000, 9999999)
 
         self.executable = executable_file
         self.executable_name = executable_name

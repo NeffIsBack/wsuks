@@ -127,9 +127,9 @@ class Wsuks:
         # Prepare WSUS HTTP Server
         # If we have a TLS cert we have to switch to HTTPS and supply the DNS name
         if self.args.tlsCert:
-            update_handler = WSUSUpdateHandler(self.executable_file, self.executable_name, f"https://{self.wsusHost}:{self.wsusPort}")
+            update_handler = WSUSUpdateHandler(self.executable_file, self.executable_name, f"https://{self.wsusHost}:{self.wsusPort}", self.args.kb)
         else:
-            update_handler = WSUSUpdateHandler(self.executable_file, self.executable_name, f"http://{self.hostIp}:{self.wsusPort}")
+            update_handler = WSUSUpdateHandler(self.executable_file, self.executable_name, f"http://{self.hostIp}:{self.wsusPort}", self.args.kb)
         update_handler.set_resources_xml(self.command)
         self.logger.debug(update_handler)
 
