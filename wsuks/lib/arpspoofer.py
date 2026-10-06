@@ -71,7 +71,7 @@ class ArpSpoofer:
         :return: The default gateway IP address or None
         """
         try:
-            return [x[2] for x in scapy.conf.route.routes if x[3] == iface and x[2] != "0.0.0.0"][0]  # noqa: RUF015
+            return next(x[2] for x in scapy.conf.route.routes if x[3] == iface and x[2] != "0.0.0.0")
         except IndexError:
             self.logger.error(f"No gateway IP found for interface {iface}")
             return None

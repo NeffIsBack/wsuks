@@ -46,7 +46,7 @@ class RegistryPolicy:
             # src: https://learn.microsoft.com/en-us/windows/win32/sysinfo/registry-value-types
             if policy.type == REG_NONE:
                 data = policy.data
-            elif policy.type == REG_SZ:  # noqa: SIM114
+            elif policy.type == REG_SZ:  # ruff: ignore[if-with-same-arms]
                 data = policy.data.decode("utf-16-le").rstrip("\x00")
             elif policy.type == REG_EXPAND_SZ:
                 data = policy.data.decode("utf-16-le").rstrip("\x00")

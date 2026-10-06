@@ -226,5 +226,5 @@ class WSUSBaseServer(BaseHTTPRequestHandler):
         else:
             self.logger.warning("POST Response without data.")
 
-    def log_message(self, format, *args):  # noqa: A002
+    def log_message(self, format, *args):  # ruff: ignore[builtin-argument-shadowing]
         return
