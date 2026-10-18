@@ -63,15 +63,12 @@ class WSUSUpdateHandler:
         try:
             with open(f"{path}/xml_files/get-config.xml") as file:
                 self.get_config_xml = file.read().format(lastChange=self.get_last_change())
-                file.close()
 
             with open(f"{path}/xml_files/get-cookie.xml") as file:
                 self.get_cookie_xml = file.read().format(expire=self.get_expire(), cookie=self.get_cookie())
-                file.close()
 
             with open(f"{path}/xml_files/register-computer.xml") as file:
                 self.register_computer_xml = file.read()
-                file.close()
 
             with open(f"{path}/xml_files/sync-updates.xml") as file:
                 self.sync_updates_xml = file.read().format(revision_id1=self.revision_ids[0],
@@ -82,7 +79,6 @@ class WSUSUpdateHandler:
                                                            uuid2=self.uuids[1],
                                                            expire=self.get_expire(),
                                                            cookie=self.get_cookie())
-                file.close()
 
             with open(f"{path}/xml_files/get-extended-update-info.xml") as file:
                 self.get_extended_update_info_xml = file.read().format(revision_id1=self.revision_ids[0],
@@ -94,15 +90,12 @@ class WSUSUpdateHandler:
                                                                        file_size=len(self.executable),
                                                                        command=html.escape(html.escape(self.command)),
                                                                        url=f"{self.client_location}/{uuid.uuid4()}/{self.executable_name}")
-                file.close()
 
             with open(f"{path}/xml_files/report-event-batch.xml") as file:
                 self.report_event_batch_xml = file.read()
-                file.close()
 
             with open(f"{path}/xml_files/get-authorization-cookie.xml") as file:
                 self.get_authorization_cookie_xml = file.read().format(cookie=self.get_cookie())
-                file.close()
 
         except Exception as err:
             self.logger.error(f"Error: {err}")
